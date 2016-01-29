@@ -1,0 +1,23 @@
+source "http://rubygems.org"
+gem "json"
+gem "rack"
+gem "rack-test"
+gem "sinatra"
+gem "data_mapper"
+gem "dm-mysql-adapter"
+gem "linguistics"
+gem "mail-gpg"
+gem "thin"
+gem "crypt"
+gem "net-ldap"
+
+platforms :jruby do
+  gem "do_jdbc"
+  gem "jdbc-mysql"
+  gem "trinidad"
+  gem "warbler"
+end
+
+# Documentation
+gem "yard-sinatra"
+gem "yard-dm"

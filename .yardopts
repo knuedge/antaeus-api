@@ -1,0 +1,7 @@
+--plugin yard-sinatra
+--plugin yard-dm
+-m markdown
+main.rb
+controllers/*.rb 
+models/*.rb 
+lib/*.rb
