@@ -1,5 +1,7 @@
 module LDAP
   class Model
+    include Comparable
+
     def initialize(entity)
       @entity = entity
       self.class.class_eval do
@@ -94,6 +96,18 @@ module LDAP
         fail "Ambiguous LDAP #{self}"
       else
         return self.new(entries.first)
+      end
+    end
+
+    def <=>(other)
+      if self.dn < other.dn
+        -1
+      elsif self.dn > other.dn
+        1
+      elsif self.dn == other.dn
+        0
+      else
+        fail "Invalid Comparison"
       end
     end
   end

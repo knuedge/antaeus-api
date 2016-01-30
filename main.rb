@@ -25,7 +25,7 @@ puts ">> Starting up..."
 
 # Create or load a config file
 apprc_dir   = File.expand_path(File.join("~", ".antaeus"))
-config_file = File.expand_path(File.join(apprc_dir, "config.yml"))
+config_file = File.expand_path(File.join(apprc_dir, "api.yml"))
 if File.readable?(config_file)
   CONFIG = YAML.load_file(config_file)
 else
@@ -65,6 +65,7 @@ else
       :userattr   => 'uid',
       :loginattr  => 'uid',
       :mailattr   => 'mail',
+      :admin_group => 'sgAntaeusAdmins',
       :caching    => false
     },
     :debug => false

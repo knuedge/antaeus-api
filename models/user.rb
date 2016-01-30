@@ -26,4 +26,13 @@ class User < LDAP::Model
       fail "No Matching Token"
     end
   end
+
+  def groups
+    Group.with_member(self)
+  end
+
+  def admin?
+    query = "#{CONFIG[:ldap][:groupattr]}=#{CONFIG[:ldap][:admin_group]},#{CONFIG[:ldap][:groupbase]}"
+    Group.from_dn(query).members.include?(self)
+  end
 end
