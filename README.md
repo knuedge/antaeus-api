@@ -19,7 +19,7 @@ Once the required gems are installed and the database software is running, a dat
 
 To start the Antaeus Web Service API, either create a warfile using `warble war` and 1) run it directly with `java -jar antaeus-api.war` or 2) drop it in your favorite Java App Server (perhaps the well-tested [Apache Tomcat](http://tomcat.apache.org/)), or rather than using Java you can run the `main.rb` file using your favorite Ruby runtime. Simply running `rackup` in the applications root directory should work well.
 
-On first run, a directory called ".antaeus" will be created under your home directory, and within it will be the config file: "config.yml". Antaeus should have automatically stopped, so feel free to edit the "config.yml" file to match your database, LDAP, and other configurations. After this step is complete, launch the Antaeus Web Service again and connect to it via the port described in the startup logs (usually 8080 when using a Java method or 4567 when using Ruby directly) to begin using it.
+On first run, a directory called ".antaeus" will be created under your home directory, and within it will be the config file: "api.yml". Antaeus should have automatically stopped, so feel free to edit the "api.yml" file to match your database, LDAP, and other configurations. After this step is complete, launch the Antaeus Web Service again and connect to it via the port described in the startup logs (usually 8080 when using a Java method or 4567 when using Ruby directly) to begin using it.
 
 Currently, Antaeus only support LDAP for authentication and authorization. It uses a custom, limited-use, token-based API secret system for most API keys. Most actions require an API token, which can only be acquired via a call to `/users/authenticate.json`.
 
