@@ -26,6 +26,22 @@ def sha512(string)
   Digest::SHA512.digest(string).to_64.chomp
 end
 
+# Create a sufficiently unique and random API key for a user
+# This is a one-way hash, encrypted only to make it longer
+# @return [String] Base64 encoded secret string
+def create_api_key(string, pepper = rand(9**99).to_s)
+  # Hash then encrypt our seed string
+  10.times do
+    # Run our string through 10 rounds of SHA512, each time "peppering" it with random data
+    10.times do
+      string = sha512(string.to_s + pepper)
+    end
+    # Encrypt the end result to further obfuscate things
+    string = encrypt(string + pepper).gsub("\n", '')
+  end
+  return string[0...32] # return the end result, stripping to 32 characters
+end
+
 # Create a sufficiently unique and random application key
 # This is a one-way hash, encrypted only to make it longer
 # @return [String] Base64 encoded secret string

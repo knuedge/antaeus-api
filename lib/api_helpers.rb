@@ -31,7 +31,7 @@ def request_headers
   request.env.inject({}) {|acc, (k,v)| acc[$1.downcase] = v if k =~ /^http_(.*)/i; acc}
 end
 
-# Check API auth based on the `x-api-email` and `x-api-key` headers
+# Check API auth based on the `x-api-login` and `x-api-token` headers
 # or based on `x-app-ident`, `x-app-key`, and `x-on-behalf-of` headers
 def api_authenticated?
   data = request_headers
@@ -41,14 +41,14 @@ def api_authenticated?
       @via_application = RemoteApplication.first(:ident => data['x_app_ident'])
 
       raise "Invalid Remote Application Login" unless @via_application and @via_application.app_key == data['x_app_key']
-      @current_user = User.first(:email => data['x_on_behalf_of'])
+      @current_user = User.from_login(data['x_on_behalf_of'])
     else
-      raise "Missing Email" unless data.has_key?('x_api_email')
-      raise "Missing API Key" unless data.has_key?('x_api_key')
+      raise "Missing Login" unless data.has_key?('x_api_login')
+      raise "Missing API Token" unless data.has_key?('x_api_token')
 
-      @current_user = User.first(:email => data['x_api_email'], :api_key => data['x_api_key'])
+      @current_user = User.from_token(data['x_api_login'], data['x_api_token'])
     end
-    raise "Failed Attempt" unless @current_user and (@current_user.api_key_valid? or @via_application)
+    raise "Failed Attempt" unless @current_user and (@current_user.api_token.valid_token? or @via_application)
     return true
   rescue => e
     halt(401, { :error => "Authentication Failed: #{e.message}" }.to_json)

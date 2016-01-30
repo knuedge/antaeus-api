@@ -7,4 +7,23 @@ class User < LDAP::Model
       self.new(entry)
     end
   end
+
+  def api_token
+    ApiToken.first_or_create(dn: dn)
+  end
+
+  # Dynamically construct a DN from the login attribute
+  def self.from_login(login)
+    from_dn("#{CONFIG[:ldap][:userattr]}=#{login},#{CONFIG[:ldap][:userbase]}")
+  end
+
+  # Authenticate a user from their API token
+  def self.from_token(login, token)
+    user = from_login(login)
+    if user.api_token.value == token
+      return user
+    else
+      fail "No Matching Token"
+    end
+  end
 end

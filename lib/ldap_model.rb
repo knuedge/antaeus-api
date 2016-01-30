@@ -84,6 +84,17 @@ module LDAP
     def to_json(*a)
       @entity.to_json(*a)
     end
- 
+
+    def self.from_dn(the_dn)
+      filter = the_dn.split(',')[0]
+      entries = LDAP.search(filter)
+      if entries.nil? || entries.empty?
+        fail "Unknown LDAP #{self}"
+      elsif entries.size > 1
+        fail "Ambiguous LDAP #{self}"
+      else
+        return self.new(entries.first)
+      end
+    end
   end
 end
