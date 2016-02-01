@@ -65,8 +65,15 @@ else
       :userattr   => 'uid',
       :loginattr  => 'uid',
       :mailattr   => 'mail',
+      :snattr     => 'sn',
+      :gnattr     => 'givenName',
       :admin_group => 'sgAntaeusAdmins',
-      :caching    => false
+      :caching    => {
+        :enabled  => false,
+        :host     => 'redis.example.com',
+        :port     => 6379,
+        :passphrase => 'letmein'
+      }
     },
     :debug => false
   }

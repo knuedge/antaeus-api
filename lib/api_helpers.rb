@@ -8,7 +8,7 @@ def api_parse_for(controller, format = :json)
   before %r{/#{controller.to_s}(.#{format.to_s}|/.*)} do
     if request.get? or request.delete?
       begin
-        @data = params
+        @data = params.to_hash
       rescue => e
         halt(501, { :error => e.message }.to_json)
       end

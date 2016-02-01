@@ -21,8 +21,8 @@ module LDAP
     end
   end
 
-  def self.search(filter, base = CONFIG[:ldap][:basedn])
-    connection.search(base: base, filter: filter)
+  def self.search(filter, base = CONFIG[:ldap][:basedn], attrs = [])
+    connection.search(base: base, filter: filter, attributes: attrs.map {|a| a.to_s})
   end
 
   # Test a user's auth

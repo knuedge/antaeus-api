@@ -79,12 +79,35 @@ module LDAP
       end
     end
 
+    # Return all instances available for this class
+    def self.all
+      attrs = [*single_value_attributes, *multi_value_attributes, :dn].uniq
+      LDAP.search(
+        "(#{CONFIG[:ldap]["#{self.to_s.downcase}attr".to_sym]}=*)",
+        CONFIG[:ldap]["#{self.to_s.downcase}base".to_sym],
+        attrs
+      ).collect do |entry|
+        new(entry)
+      end
+    end
+
     def dn
       @entity.dn
     end
 
-    def to_json(*a)
-      @entity.to_json(*a)
+    def to_s
+      @entity.send(CONFIG[:ldap]["#{self.class.to_s.downcase}attr".to_sym].to_sym).first.to_s
+    end
+
+    def to_json(options)
+      json_data = {}
+      [:dn, *self.class.single_value_attributes].uniq.each do |attribute|
+        json_data[attribute.to_sym] = [*@entity.send(attribute.to_sym)].first
+      end
+      self.class.multi_value_attributes.each do |attribute|
+        json_data[attribute.to_sym] = @entity.send(attribute.to_sym)
+      end
+      json_data.to_json(options)
     end
 
     def self.from_dn(the_dn)
@@ -95,7 +118,7 @@ module LDAP
       elsif entries.size > 1
         fail "Ambiguous LDAP #{self}"
       else
-        return self.new(entries.first)
+        return new(entries.first)
       end
     end
 

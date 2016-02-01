@@ -19,7 +19,7 @@ end
 
 # POST an new remote application registration.
 #
-# REQUIRED: name, ident (must be at between 64 and 255 characters).
+# REQUIRED: name, ident (must be between 64 and 255 characters).
 #
 # OPTIONAL: url.
 # @example
@@ -30,7 +30,7 @@ end
 #  }
 post '/remote_applications.json' do
 	begin
-    if api_authenticated? and @current_user.global_admin?
+    if api_authenticated? and @current_user.admin?
       raise "Missing application data" unless @data.has_key?('name') and @data.has_key?('ident')
       if !RemoteApplication.first(:name => @data['name'])
         app = RemoteApplication.new(
@@ -56,7 +56,7 @@ end
 # DELETE a remote application registration
 delete '/remote_applications/:id.json' do |id|
   begin
-    if api_authenticated? and @current_user.global_admin?
+    if api_authenticated? and @current_user.admin?
       app = RemoteApplication.get(id)
       raise "Removal of Self Not Permitted" if app == @via_application
       app.destroy
@@ -72,7 +72,7 @@ end
 # GET the info about a remote application
 get '/remote_applications/:id.json' do |id|
   begin
-    if api_authenticated? and @current_user.global_admin?
+    if api_authenticated? and @current_user.admin?
       app = RemoteApplication.get(id)
       if app
         status 200

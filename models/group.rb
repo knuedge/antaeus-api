@@ -2,10 +2,8 @@ class Group < LDAP::Model
   ldap_attr CONFIG[:ldap][:groupattr].to_sym
   ldap_attr CONFIG[:ldap][:memberattr].to_sym, type: :multi
 
-  def self.all
-    LDAP.search("(#{CONFIG[:ldap][:groupattr]}=*)", CONFIG[:ldap][:groupbase]).collect do |entry|
-      self.new(entry)
-    end
+  def self.from_attr(name)
+    from_dn("#{CONFIG[:ldap][:groupattr]}=#{name},#{CONFIG[:ldap][:groupbase]}")
   end
 
   def self.with_member(user)
