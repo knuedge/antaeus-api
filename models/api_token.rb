@@ -1,13 +1,14 @@
+# API Token table for API user authentication
 class ApiToken
   include DataMapper::Resource
-  
-  property :id, 			      Serial
-  property :dn,             String,   :length => 4..255, :required => true, :index => :dn, :unique_index => true
-  property :value,          Text,     :required => true, :default => create_api_key(Time.now.to_i)
-  property :valid_from,   	DateTime,	:required => true, :default => DateTime.now
-  property :created_at,     DateTime
-  property :updated_at,     DateTime
-  
+
+  property :id,         Serial
+  property :dn,         String,   length: 4..255, required: true, index: :dn, unique_index: true
+  property :value,      Text,     required: true, default: create_api_key(Time.now.to_i)
+  property :valid_from, DateTime,	required: true, default: DateTime.now
+  property :created_at, DateTime
+  property :updated_at, DateTime
+
   # Decrypt token before displaying it
   # @return [String]
   def value
@@ -39,7 +40,7 @@ class ApiToken
   # When does the API key expire for this user
   # @return [DateTime]
   def valid_to
-    valid_from + (1.0/24.0)
+    valid_from + (1.0 / 24.0)
   end
 
   # Add life to the API key
@@ -57,7 +58,9 @@ class ApiToken
   # @see #valid?
   # @see #validate
   def replace!
-    unless valid_token?
+    if valid_token?
+      reload
+    else
       self.value = create_api_key(dn + Time.now.to_i.to_s)
       self.valid_from = DateTime.now
       save

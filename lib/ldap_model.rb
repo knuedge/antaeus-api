@@ -14,7 +14,7 @@ module LDAP
     def self.ldap_attr(name, options = {})
       # Make sure these are initialized
       @single_value_attributes ||= []
-      @multi_value_attributes  ||= []
+      @multi_value_attributes ||= []
 
       attribute = name.to_sym
       if options.key?(:pre) && options[:pre].is_a?(Proc)
@@ -23,13 +23,13 @@ module LDAP
 
       # Insert our attribute in the right place
       if options.key?(:type) && options[:type].to_sym == :multi
-        unless @multi_value_attributes.collect {|mva| [*mva].first }.include? name.to_sym
+        unless @multi_value_attributes.collect { |mva| [*mva].first }.include? name.to_sym
           @multi_value_attributes << attribute
         end
       elsif options.key?(:type) && options[:type].to_sym != :single
-        fail "Invalid LDAP Attribute Type"
+        fail 'Invalid LDAP Attribute Type'
       else
-        unless @single_value_attributes.collect {|sva| [*sva].first }.include? name.to_sym
+        unless @single_value_attributes.collect { |sva| [*sva].first }.include? name.to_sym
           @single_value_attributes << attribute
         end
       end
@@ -42,7 +42,7 @@ module LDAP
 
     # This should be overloaded
     def self.multi_value_attributes
-      @multi_value_attributes  ||= []
+      @multi_value_attributes ||= []
     end
 
     def self.generate_single_value_readers
@@ -83,8 +83,8 @@ module LDAP
     def self.all
       attrs = [*single_value_attributes, *multi_value_attributes, :dn].uniq
       LDAP.search(
-        "(#{CONFIG[:ldap]["#{self.to_s.downcase}attr".to_sym]}=*)",
-        CONFIG[:ldap]["#{self.to_s.downcase}base".to_sym],
+        "(#{CONFIG[:ldap]["#{to_s.downcase}attr".to_sym]}=*)",
+        CONFIG[:ldap]["#{to_s.downcase}base".to_sym],
         attrs
       ).collect do |entry|
         new(entry)
@@ -123,14 +123,14 @@ module LDAP
     end
 
     def <=>(other)
-      if self.dn < other.dn
+      if dn < other.dn
         -1
-      elsif self.dn > other.dn
+      elsif dn > other.dn
         1
-      elsif self.dn == other.dn
+      elsif dn == other.dn
         0
       else
-        fail "Invalid Comparison"
+        fail 'Invalid Comparison'
       end
     end
   end

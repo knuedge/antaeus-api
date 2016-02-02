@@ -1,3 +1,4 @@
+# Group model for working with LDAP groups
 class Group < LDAP::Model
   ldap_attr CONFIG[:ldap][:groupattr].to_sym
   ldap_attr CONFIG[:ldap][:memberattr].to_sym, type: :multi
@@ -7,16 +8,18 @@ class Group < LDAP::Model
   end
 
   def self.with_member(user)
-    query = "(&(#{CONFIG[:ldap][:groupattr]}=*)(#{CONFIG[:ldap][:memberattr]}="
-    query << CONFIG[:ldap][:memberref] == 'dn' ? user.dn : user.send(CONFIG[:ldap][:userattr].to_sym)
-    query << '))'
+    ldap_conf = CONFIG[:ldap]
+    mem_attr  = ldap_conf[:memberref] == 'dn' ? user.dn : user.send(ldap_conf[:userattr].to_sym)
+
+    query = "(&(#{ldap_conf[:groupattr]}=*)(#{ldap_conf[:memberattr]}=#{mem_attr}))"
+
     LDAP.search(query, CONFIG[:ldap][:groupbase]).collect do |entry|
-      self.new(entry)
+      new(entry)
     end
   end
 
   def members
-    self.send(CONFIG[:ldap][:memberattr].to_sym).collect do |m|
+    send(CONFIG[:ldap][:memberattr].to_sym).collect do |m|
       if CONFIG[:ldap][:memberref] == 'dn'
         User.from_dn(m)
       else

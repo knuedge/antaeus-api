@@ -1,3 +1,4 @@
+# User model for working with LDAP users
 class User < LDAP::Model
   ldap_attr CONFIG[:ldap][:userattr].to_sym
   ldap_attr CONFIG[:ldap][:mailattr].to_sym
@@ -19,7 +20,7 @@ class User < LDAP::Model
     if user.api_token.value == token
       return user
     else
-      fail "No Matching Token"
+      fail 'No Matching Token'
     end
   end
 
@@ -28,7 +29,8 @@ class User < LDAP::Model
   end
 
   def admin?
-    query = "#{CONFIG[:ldap][:groupattr]}=#{CONFIG[:ldap][:admin_group]},#{CONFIG[:ldap][:groupbase]}"
+    query = "#{CONFIG[:ldap][:groupattr]}=#{CONFIG[:ldap][:admin_group]},"
+    query << CONFIG[:ldap][:groupbase]
     Group.from_dn(query).members.include?(self)
   end
 end
