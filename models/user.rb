@@ -1,6 +1,8 @@
 class User < LDAP::Model
   ldap_attr CONFIG[:ldap][:userattr].to_sym
   ldap_attr CONFIG[:ldap][:mailattr].to_sym
+  ldap_attr CONFIG[:ldap][:snattr].to_sym
+  ldap_attr CONFIG[:ldap][:gnattr].to_sym
 
   def api_token
     ApiToken.first_or_create(dn: dn)

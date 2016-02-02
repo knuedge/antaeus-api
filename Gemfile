@@ -10,6 +10,10 @@ gem "mail-gpg"
 gem "thin"
 gem "crypt"
 gem "net-ldap"
+# caching
+gem "rack-cache"
+gem "moneta"
+gem "redis"
 
 platforms :jruby do
   gem "do_jdbc"

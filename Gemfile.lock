@@ -71,13 +71,17 @@ GEM
       mail (~> 2.5, >= 2.5.3)
     mime-types (2.99)
     mini_portile2 (2.1.0)
+    moneta (0.8.0)
     multi_json (1.11.2)
     net-ldap (0.13.0)
     rack (1.6.4)
+    rack-cache (1.6.0)
+      rack (>= 0.4)
     rack-protection (1.5.3)
       rack
     rack-test (0.6.3)
       rack (>= 1.0)
+    redis (3.2.2)
     sinatra (1.4.7)
       rack (~> 1.5)
       rack-protection (~> 1.4)
@@ -106,9 +110,12 @@ DEPENDENCIES
   json
   linguistics
   mail-gpg
+  moneta
   net-ldap
   rack
+  rack-cache
   rack-test
+  redis
   sinatra
   thin
   trinidad

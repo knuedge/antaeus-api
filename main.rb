@@ -14,6 +14,7 @@ require 'dm-transactions'
 require 'linguistics'
 require 'mail-gpg'
 require 'net/ldap'
+require 'moneta'
 
 ### Custom code
 

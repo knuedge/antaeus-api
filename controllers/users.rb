@@ -40,6 +40,7 @@ end
 # GET the current version of the application
 get '/users.json' do
   begin
+    expires 3600
     if api_authenticated?
       status 200
     	body(User.all.collect {|u| u.to_s }.to_json)
@@ -52,6 +53,7 @@ end
 # GET the details on a user
 get '/users/:name.json' do
   begin
+    expires 900
     if api_authenticated?
       status 200
     	body(User.from_login(params['name']).to_json(methods: [:mail]))
