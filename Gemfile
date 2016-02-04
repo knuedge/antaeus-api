@@ -11,7 +11,6 @@ gem "thin"
 gem "crypt"
 gem "net-ldap"
 # caching
-gem "rack-cache"
 gem "moneta"
 gem "redis"
 

@@ -143,6 +143,16 @@ before '*' do
   content_type 'application/json'
 end
 
+# Background worker for LDAP caching
+unless CACHE_STATUS == :disabled
+  Thread.new do
+    loop do
+      [User, Group].each {|lc| cache_prefetch(lc) }
+      sleep 120
+    end
+  end
+end
+
 # Controllers
 puts '>> Loading API controllers'
 Dir.glob(File.join(Dir.pwd,'controllers/*.rb')).each do |controller|

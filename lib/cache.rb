@@ -2,7 +2,7 @@ if CONFIG[:caching] &&
   CONFIG[:caching].has_key?(:enabled) &&
   CONFIG[:caching][:enabled]
 
-  require 'rack/cache'
+  CACHE_STATUS = :enabled
 
   if CONFIG[:caching].has_key?(:library)
     case CONFIG[:caching][:library].to_s
@@ -12,22 +12,21 @@ if CONFIG[:caching] &&
       @cache_host    = CONFIG[:caching][:host]
       @cache_port    = CONFIG[:caching][:port]
       @cache_pass    = CONFIG[:caching][:passphrase]
-
-      fail "Missing Cache Host" unless @cache_host
-      fail "Missing Cache Port" unless @cache_port
     else
       fail "Invalid Caching Library: #{CONFIG[:caching][:library].to_s}"
     end
   else
-    @cache_library = :LRUHash
+    fail "Missing Cache Library! Try setting caching > library in the config."
   end
 
   require 'rack/cache/moneta'
 
-  puts ">> Caching enabled via Moneta::#{@cache_library}"
+  puts ">> Caching #{CACHE_STATUS} via Moneta::#{@cache_library}"
   
   cache_config = { expires: true }
-  if @cache_library == :Redis
+  if [:Redis].include? @cache_library
+    fail "Missing Cache Host" unless @cache_host
+    fail "Missing Cache Port" unless @cache_port
     cache_config[:host] = @cache_host
     cache_config[:port] = @cache_port
     cache_config[:password] = @cache_pass if @cache_pass
@@ -39,7 +38,8 @@ if CONFIG[:caching] &&
   CACHE = Moneta.new(@cache_library, cache_config)
 else
   CACHE = Moneta.new(:Null, threadsafe: true)
-  puts ">> Cache Disabled!"
+  CACHE_STATUS = :disabled
+  puts ">> Cache #{CACHE_STATUS}!"
 end
 
 # Helper to implement "fetch or add" for the Cache
@@ -54,4 +54,15 @@ def cache_fetch(key, options = {}, &block)
   else
     result
   end
+end
+
+# Helper for backgroud cache prefetching
+def cache_prefetch(ldap_class)
+  start_time = Time.now
+  results = ldap_class.all
+  cache_fetch('all_user_json', expires: 900) { ldap_class.all.map {|l| l.to_s }.to_json }
+  end_time = Time.now
+  time_taken = end_time - start_time
+  puts "[LDAP Cache Worker @ #{Time.now.strftime("%d/%b/%Y:%H:%M:%S %z")}]: " +
+    "Cached #{results.size} LDAP #{ldap_class} objects in #{time_taken} seconds"
 end

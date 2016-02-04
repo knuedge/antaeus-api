@@ -42,7 +42,7 @@ get '/users.json' do
   begin
     if api_authenticated?
       status 200
-    	body(cache_fetch('all_user_json', expires: 900) { User.all.collect {|u| u.to_s }.to_json })
+    	body(cache_fetch('all_user_json', expires: 900) { User.all.map {|u| u.to_s }.to_json })
     end
   rescue => e
     halt(422, { :error => e.message }.to_json)
@@ -54,7 +54,7 @@ get '/users/:name.json' do
   begin
     if api_authenticated?
       status 200
-    	body(User.from_login(params['name']).to_json(methods: [:mail]))
+    	body(User.from_login(params['name']).to_json)
     end
   rescue => e
     halt(422, { :error => e.message }.to_json)
