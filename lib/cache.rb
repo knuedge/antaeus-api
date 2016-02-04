@@ -19,8 +19,6 @@ if CONFIG[:caching] &&
     fail "Missing Cache Library! Try setting caching > library in the config."
   end
 
-  require 'rack/cache/moneta'
-
   puts ">> Caching #{CACHE_STATUS} via Moneta::#{@cache_library}"
   
   cache_config = { expires: true }
