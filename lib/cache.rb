@@ -31,19 +31,27 @@ if CONFIG[:caching] &&
     cache_config[:host] = @cache_host
     cache_config[:port] = @cache_port
     cache_config[:password] = @cache_pass if @cache_pass
-  else
     cache_config[:threadsafe] = true
+  else
     cache_config[:max_size]   = CONFIG[:caching][:size] ? CONFIG[:caching][:size] : 10240000
   end
 
-  Rack::Cache::Moneta['antaeus'] = Moneta.new(@cache_library, cache_config)
-  CACHE = Rack::Cache::Moneta['antaeus']
-
-  use Rack::Cache,
-        metastore:   'moneta://antaeus',
-        entitystore: 'moneta://antaeus',
-        allow_reload: true
+  CACHE = Moneta.new(@cache_library, cache_config)
 else
-  CACHE = Moneta.new(:LRUCache, threadsafe: true, max_size: 10240000)
-  puts ">> Rack Cache Disabled!"
+  CACHE = Moneta.new(:Null, threadsafe: true)
+  puts ">> Cache Disabled!"
+end
+
+# Helper to implement "fetch or add" for the Cache
+def cache_fetch(key, options = {}, &block)
+  result = CACHE.load(key, options)
+  if result.nil?
+    if block_given?
+      CACHE.store(key, block.call, options)
+    else
+      nil
+    end
+  else
+    result
+  end
 end

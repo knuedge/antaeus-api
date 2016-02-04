@@ -1,0 +1,14 @@
+# ignore .yardoc stuff
+.yardoc/*
+doc/*
+
+# logs
+log/*
+
+# ignore any generated WAR files
+*.war
+
+# misc
+*.orig
+.DS_Store
+*.sw?

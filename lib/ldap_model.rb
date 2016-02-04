@@ -81,13 +81,15 @@ module LDAP
 
     # Return all instances available for this class
     def self.all
-      attrs = [*single_value_attributes, *multi_value_attributes, :dn].uniq
-      LDAP.search(
-        "(#{CONFIG[:ldap]["#{to_s.downcase}attr".to_sym]}=*)",
-        CONFIG[:ldap]["#{to_s.downcase}base".to_sym],
-        attrs
-      ).collect do |entry|
-        new(entry)
+      attrs  = [*single_value_attributes, *multi_value_attributes, :dn].uniq
+      filter = "(#{CONFIG[:ldap]["#{to_s.downcase}attr".to_sym]}=*)"
+      base   = CONFIG[:ldap]["#{to_s.downcase}base".to_sym]
+      cache_key = "all_#{filter}_#{base}"
+      result_data = cache_fetch(cache_key, expires: 900) { LDAP.search(filter, base, attrs) }
+      cache_fetch("#{to_s.downcase}_all", expires: 300) do
+        result_data.collect do |entry|
+          cache_fetch(entry.dn, expires: 300) { new(entry) }
+        end
       end
     end
 
@@ -111,14 +113,16 @@ module LDAP
     end
 
     def self.from_dn(the_dn)
-      filter = the_dn.split(',')[0]
-      entries = LDAP.search(filter)
-      if entries.nil? || entries.empty?
-        fail "Unknown LDAP #{self}"
-      elsif entries.size > 1
-        fail "Ambiguous LDAP #{self}"
-      else
-        return new(entries.first)
+      cache_fetch(the_dn, expires: 300) do
+        filter = the_dn.split(',')[0]
+        entries = LDAP.search(filter)
+        if entries.nil? || entries.empty?
+          fail "Unknown LDAP #{self}"
+        elsif entries.size > 1
+          fail "Ambiguous LDAP #{self}"
+        else
+           new(entries.first)
+        end
       end
     end
 

@@ -113,6 +113,12 @@ set :show_exceptions, false
 set :dump_exceptions, true
 set :raise_errors, true
 
+# Logging
+FileUtils.mkdir_p("#{settings.root}/log/")
+file = File.new("#{settings.root}/log/#{settings.environment}.log", 'a+')
+file.sync = true
+use Rack::CommonLogger, file
+
 # Library updates
 puts '>> Loading internal libraries'
 Dir.glob(File.join(Dir.pwd,'lib/*.rb')).each do |library|
