@@ -87,7 +87,7 @@ module LDAP
       cache_key = "all_#{filter}_#{base}"
       result_data = cache_fetch(cache_key, expires: 900) { LDAP.search(filter, base, attrs) }
       cache_fetch("#{to_s.downcase}_all", expires: 300) do
-        result_data.collect do |entry|
+        PooledIterator.collect(result_data, 4) do |entry|
           cache_fetch(entry.dn, expires: 300) { new(entry) }
         end
       end
@@ -100,14 +100,24 @@ module LDAP
 
       result_data = []
       if CACHE_STATUS == :enabled
-        all.each do |entry|
+        result_data = PooledIterator.collect(all, 8) do |entry|
+          output = nil
           single_value_attributes.each do |ldap_at|
-            result_data << entry.raw if entry.send(ldap_at.to_sym).to_s.downcase.match %r(#{query.downcase})
+            if entry.send(ldap_at.to_sym).to_s.downcase.match %r(#{query.downcase})
+              output = entry.raw
+              break
+            end
           end
-          multi_value_attributes.each do |ldap_at|
-            result_data << entry.raw if entry.send(ldap_at.to_sym).any? { |v| v.to_s.downcase.match %r(#{query.downcase}) }
+          unless output
+            multi_value_attributes.each do |ldap_at|
+              if entry.send(ldap_at.to_sym).any? { |v| v.to_s.downcase.match %r(#{query.downcase}) }
+                output = entry.raw
+                break
+              end
+            end
           end
-        end
+          output
+        end.compact
       else
         # Build a complex filter for a query on all attributes
         objcl = CONFIG[:ldap]["#{to_s.downcase}objcl".to_sym]
@@ -123,7 +133,7 @@ module LDAP
         result_data = cache_fetch(cache_key, expires: 300) { LDAP.search(filter, base, attrs) }
       end
       cache_fetch("#{to_s.downcase}_search_#{query}", expires: 300) do
-        result_data.uniq.collect do |entry|
+        PooledIterator.collect(result_data.uniq, 4) do |entry|
           cache_fetch(entry.dn, expires: 300) { new(entry) }
         end
       end

@@ -58,7 +58,9 @@ end
 def cache_prefetch(ldap_class)
   start_time = Time.now
   results = ldap_class.all
-  cache_fetch('all_user_json', expires: 900) { ldap_class.all.map {|l| l.to_s }.to_json }
+  cache_fetch('all_user_json', expires: 900) do
+    PooledIterator.collect(ldap_class.all, 4) {|entry| entry.to_s }.to_json
+  end
   end_time = Time.now
   time_taken = end_time - start_time
   puts "[LDAP Cache Worker @ #{Time.now.strftime("%d/%b/%Y:%H:%M:%S %z")}]: " +
