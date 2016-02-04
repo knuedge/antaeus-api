@@ -93,6 +93,46 @@ module LDAP
       end
     end
 
+    # Do an LDAP Search
+    # This will eventually need to be made safer (preventing injection in the query)
+    def self.search(query)
+      attrs  = [*single_value_attributes, *multi_value_attributes, :dn].uniq
+
+      result_data = []
+      if CACHE_STATUS == :enabled
+        all.each do |entry|
+          single_value_attributes.each do |ldap_at|
+            result_data << entry.raw if entry.send(ldap_at.to_sym).to_s.downcase.match %r(#{query.downcase})
+          end
+          multi_value_attributes.each do |ldap_at|
+            result_data << entry.raw if entry.send(ldap_at.to_sym).any? { |v| v.to_s.downcase.match %r(#{query.downcase}) }
+          end
+        end
+      else
+        # Build a complex filter for a query on all attributes
+        objcl = CONFIG[:ldap]["#{to_s.downcase}objcl".to_sym]
+        filter = "(&(objectClass=#{objcl})"
+        filter << '(|'
+        (attrs - [:dn]).each do |ldap_at|
+          filter << "(#{ldap_at}=*#{query}*)"
+        end
+        filter << '))'
+
+        base   = CONFIG[:ldap]["#{to_s.downcase}base".to_sym]
+        cache_key = "search_#{filter}_#{base}"
+        result_data = cache_fetch(cache_key, expires: 300) { LDAP.search(filter, base, attrs) }
+      end
+      cache_fetch("#{to_s.downcase}_search_#{query}", expires: 300) do
+        result_data.uniq.collect do |entry|
+          cache_fetch(entry.dn, expires: 300) { new(entry) }
+        end
+      end
+    end
+
+    def raw
+      @entity
+    end
+
     def dn
       @entity.dn
     end
@@ -101,7 +141,7 @@ module LDAP
       @entity.send(CONFIG[:ldap]["#{self.class.to_s.downcase}attr".to_sym].to_sym).first.to_s
     end
 
-    def to_json(options)
+    def to_json(options = {})
       json_data = {}
       [:dn, *self.class.single_value_attributes].uniq.each do |attribute|
         json_data[attribute.to_sym] = [*@entity.send(attribute.to_sym)].first

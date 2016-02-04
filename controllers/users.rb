@@ -49,6 +49,22 @@ get '/users.json' do
   end
 end
 
+# GET a User search
+get '/users/search.json' do
+  begin
+    if api_authenticated?
+      status 200
+    	body(
+        cache_fetch("search_user_#{params['q']}_json", expires: 300) {
+          User.search(params['q']).map {|u| u.to_s }.to_json
+        }
+      )
+    end
+  rescue => e
+    halt(422, { :error => e.message }.to_json)
+  end
+end
+
 # GET the details on a user
 get '/users/:name.json' do
   begin
