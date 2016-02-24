@@ -8,6 +8,9 @@ log/*
 # ignore any generated WAR files
 *.war
 
+# ignore the tmp directory
+tmp/*
+
 # misc
 *.orig
 .DS_Store

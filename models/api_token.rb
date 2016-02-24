@@ -3,9 +3,9 @@ class ApiToken
   include DataMapper::Resource
 
   property :id,         Serial
-  property :dn,         String,   length: 4..255, required: true, index: :dn, unique_index: true
-  property :value,      Text,     required: true, default: create_api_key(Time.now.to_i)
-  property :valid_from, DateTime,	required: true, default: DateTime.now
+  property :dn,         String,   length: 4..255, required: true, index: true, unique_index: :dn
+  property :value,      Text,     required: true, default: lambda {|x,y| create_api_key(Time.now.to_i) }
+  property :valid_from, DateTime,	required: true, default: lambda {|x,y| DateTime.now }
   property :created_at, DateTime
   property :updated_at, DateTime
 

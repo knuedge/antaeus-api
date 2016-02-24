@@ -1,0 +1,15 @@
+---
+  port: 8080
+  address: localhost
+  environment: production
+  threadsafe: true
+  http:
+    acceptCount: 100
+    maxThreads: 200
+    maxKeepAliveRequests: 50
+    minSpareThreads: 40
+    connectionTimeout: 15000
+    keepAliveTimeout: 1000
+    disableKeepAlivePercentage: 50
+    allowTrace: false
+    tcpNoDelay: true

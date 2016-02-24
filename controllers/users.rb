@@ -33,9 +33,12 @@ post '/users/authenticate.json' do
       halt(401, { :error => "Authentication Failed" }.to_json)
     end
   rescue => e
+    fail e
     halt(401, { :error => e.message }.to_json)
   end
 end
+
+# @!group User Private Actions (api key required)
 
 # GET the current version of the application
 get '/users.json' do
@@ -44,7 +47,7 @@ get '/users.json' do
       status 200
     	body(
         cache_fetch('all_user_json', expires: 900) do
-          PooledIterator.collect(User.all, 4) {|u| u.to_s }.to_json 
+          PooledIterator.collect(User.all, 4) {|u| u.to_s }.to_json
         end
       )
     end

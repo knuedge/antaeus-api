@@ -12,7 +12,7 @@ require 'dm-serializer'
 require 'dm-types'
 require 'dm-transactions'
 require 'linguistics'
-require 'mail-gpg'
+#require 'mail-gpg'
 require 'net/ldap'
 require 'moneta'
 
@@ -117,7 +117,7 @@ set :raise_errors, true
 
 # Logging
 FileUtils.mkdir_p("#{settings.root}/log/")
-file = File.new("#{settings.root}/log/#{settings.environment}.log", 'a+')
+file = File.new("#{settings.root}/log/rack.log", 'a+')
 file.sync = true
 use Rack::CommonLogger, file
 
