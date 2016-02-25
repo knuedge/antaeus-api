@@ -14,7 +14,6 @@ get '/groups.json' do
       fail "Insufficient Privileges"
     end
   rescue => e
-    fail e
     halt(422, { :error => e.message }.to_json)
   end
 end
@@ -36,7 +35,7 @@ get '/groups/search.json' do
 end
 
 # GET the details on a user
-get '/group/:group.json' do
+get '/groups/:group.json' do
   begin
     if api_authenticated? && @current_user.admin?
       status 200

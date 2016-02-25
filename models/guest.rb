@@ -3,24 +3,26 @@ class Guest
   include DataMapper::Resource
 
   property :id,         Serial
-  property :email,      String,   length: 4..255, required: true, index: true, unique_index: true,
+  property :email,      String,   length: 4..255, required: true, unique_index: true,
                                   format: :email_address
-  property :name,       Text,     required: true, index: true
-  property :contact,    String,	  required: true, index: true
-  property :arrival,    DateTime, required: true, default: lambda {|x,y| Time.now + (24 * 60 * 60) }, index: :arrival
-  property :departure,  DateTime, required: true, default: lambda {|x,y| Time.now + (48 * 60 * 60) }, index: :departure
+  property :name,       String,   required: true, index: true
   property :phone,      String
   property :citizenship, String,  required: true, default: 'USA'
+  # Does the guest need an NDA?
   property :need_nda,   Boolean,  required: true, default: false
+  property :signed_nda, Boolean,  required: true, default: false
+  # Does the guest need a TCP Attachment A?
   property :need_tcpa,  Boolean,  required: true, default: false
-  property :comment,    Text
-  # SAN, SFO, or AUS
-  property :location,   Enum[ 'SAN', 'SFO', 'AUS' ], required: true, default: 'SAN', index: :location
-  property :pin,        String,  required: true, default: lambda {|x,y| encrypt('0000') }
+  property :signed_tcpa, Boolean,  required: true, default: false
+
+  # Guest's arrival PIN for logging into this system
+  property :pin,        Text,    required: true
   property :created_at, DateTime
   property :updated_at, DateTime
   
   validates_format_of :pin, :with => /^\d{4,6}$/
+
+  has n, :appointments
 
   # Decrypt the guest's PIN before returning it
   # @return [String]
@@ -31,11 +33,5 @@ class Guest
   # Encrypt the guest's PIN before storing it
   def pin=(data)
     super(encrypt(data))
-  end
-
-  # Map a contact to its actual user
-  # @return [User]
-  def contact
-    User.from_dn(dn)
   end
 end

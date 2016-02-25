@@ -33,7 +33,6 @@ post '/users/authenticate.json' do
       halt(401, { :error => "Authentication Failed" }.to_json)
     end
   rescue => e
-    fail e
     halt(401, { :error => e.message }.to_json)
   end
 end

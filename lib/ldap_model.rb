@@ -147,6 +147,11 @@ module LDAP
       @entity.dn
     end
 
+    # Make requests for "id" provide the RDN value
+    def id
+      to_s
+    end
+
     def to_s
       @entity.send(CONFIG[:ldap]["#{self.class.to_s.downcase}attr".to_sym].to_sym).first.to_s
     end

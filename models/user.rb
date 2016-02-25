@@ -33,4 +33,8 @@ class User < LDAP::Model
     query << CONFIG[:ldap][:groupbase]
     Group.from_dn(query).members.include?(self)
   end
+
+  def appointments
+    Appointment.all(contact: to_s)
+  end
 end
