@@ -6,9 +6,15 @@ class Appointment
 
   # This should be the username of the contact this guest is here to see
   property :contact,    String,	  required: true, index: true
-  property :arrival_date,    Date, required: true, index: :arrival_date, default: lambda {|x,y| Date.today + 2 }
-  property :arrival,    DateTime, required: true, index: :arrival_time, default: lambda {|x,y| Time.now }
-  property :departure,  Date, required: true, index: :departure, default: lambda {|x,y| Date.today + 2 }
+
+  # This field is normally made for us, but I want a multi-column unique index
+  property :guest_id,   Integer, required: true, index: true, unique_index: :ga
+
+  property :arrival,    DateTime, required: true, index: :arrival_time
+  property :arrival_date,    Date,  required: true, index: :arrival_date, unique_index: :ga,
+                                    default: lambda {|r,p| r.arrival }
+
+  property :departure,  Date, required: true, index: :departure
   # location (SAN, SFO, or AUS) for the guest's visit
   property :location,   String,  required: true, default: 'SAN', index: :location
   property :comment,    Text
@@ -16,15 +22,9 @@ class Appointment
   property :created_at, DateTime, index: true
   property :updated_at, DateTime
 
-  validates_within :location, :set => [ 'SAN', 'SFO', 'AUS' ]
-
   belongs_to :guest
 
-  # Allow adding a Time object for arrival
-  def arrival=(time)
-    arrival_date = Date.parse(time.to_s)
-    super(time)
-  end
+  validates_within :location, :set => [ 'SAN', 'SFO', 'AUS' ]
 
   # Map a contact to its actual user
   # @return [User]

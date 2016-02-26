@@ -47,7 +47,6 @@ get '/guests.json' do
       fail "Insufficient Privileges"
     end
   rescue => e
-    fail e
     halt(422, { :error => e.message }.to_json)
   end
 end
@@ -56,6 +55,7 @@ end
 get '/guests/search.json' do
   begin
     if api_authenticated?
+      fail "Missing query" unless params['q']
       status 200
     	body(
         cache_fetch("search_guests_#{params['q']}_json", expires: 60) do
@@ -177,6 +177,10 @@ post '/guests/:id/appointments.json' do
         appt.raise_on_save_failure = true
         appt.save
         appt.reload
+
+        # expire our cache of appointments
+        cache_expire('upcoming_appts_json')
+
         status 201
         body(appt.to_json)
       else

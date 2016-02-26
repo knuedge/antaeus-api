@@ -59,6 +59,7 @@ end
 get '/users/search.json' do
   begin
     if api_authenticated?
+      fail "Missing query" unless params['q']
       status 200
     	body(
         cache_fetch("search_user_#{params['q']}_json", expires: 300) do

@@ -54,6 +54,11 @@ def cache_fetch(key, options = {}, &block)
   end
 end
 
+# Helper to force a cache eviction / expiration
+def cache_expire(key, options = {})
+  CACHE.delete(key, options)
+end
+
 # Helper for backgroud cache prefetching
 def cache_prefetch(ldap_class)
   start_time = Time.now
