@@ -5,7 +5,7 @@ api_parse_for(:groups)
 # @!group Public Routes
 
 # GET the groups known to the application
-get '/groups.json' do
+get '/groups' do
   begin
     if api_authenticated? && @current_user.admin?
       status 200
@@ -19,7 +19,7 @@ get '/groups.json' do
 end
 
 # GET a Group search
-get '/groups/search.json' do
+get '/groups/search' do
   begin
     if api_authenticated? && @current_user.admin?
       status 200
@@ -35,7 +35,7 @@ get '/groups/search.json' do
 end
 
 # GET the details on a user
-get '/groups/:group.json' do
+get '/groups/:group' do
   begin
     if api_authenticated? && @current_user.admin?
       status 200
@@ -47,7 +47,7 @@ get '/groups/:group.json' do
 end
 
 # GET the members of a group
-get '/groups/:group/members.json' do
+get '/groups/:group/members' do
   begin
     if api_authenticated? && @current_user.admin?
       status 200

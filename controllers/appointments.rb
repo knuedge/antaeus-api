@@ -5,7 +5,7 @@ api_parse_for(:appointments)
 # @!group Guests Private Routes
 
 # GET the upcoming appointments
-get '/appointments/upcoming.json' do
+get '/appointments/upcoming' do
   begin
     if api_authenticated?
       status 200

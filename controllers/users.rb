@@ -14,7 +14,7 @@ api_parse_for(:users)
 #   "login": "jonathan.gnagy@gmail.com",
 #   "password": "letmein"
 #  }
-post '/users/authenticate.json' do
+post '/users/authenticate' do
   begin
     fail "Missing Login" if @data.nil? or !@data.has_key?('login')
     fail "Missing Password" unless @data.has_key?('password')
@@ -40,7 +40,7 @@ end
 # @!group User Private Actions (api key required)
 
 # GET the current version of the application
-get '/users.json' do
+get '/users' do
   begin
     if api_authenticated?
       status 200
@@ -56,7 +56,7 @@ get '/users.json' do
 end
 
 # GET a User search
-get '/users/search.json' do
+get '/users/search' do
   begin
     if api_authenticated?
       fail "Missing query" unless params['q']
@@ -73,7 +73,7 @@ get '/users/search.json' do
 end
 
 # GET the details on a user
-get '/users/:name.json' do
+get '/users/:name' do
   begin
     if api_authenticated?
       status 200

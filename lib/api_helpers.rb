@@ -4,8 +4,8 @@
 
 # Setup a standard parsed @data object
 # by parsing the params or request body
-def api_parse_for(controller, format = :json)
-  before %r{/#{controller.to_s}(.#{format.to_s}|/.*)} do
+def api_parse_for(controller)
+  before /\/#{controller.to_s}(\/.*|\.json)?$/ do
     if request.get? or request.delete?
       begin
         @data = params.to_hash

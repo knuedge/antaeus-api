@@ -34,4 +34,14 @@ class Guest
   def pin=(data)
     super(encrypt(data))
   end
+
+  # Just the upcoming appointments
+  def upcoming_appointments
+    appointments.upcoming
+  end
+
+  # Just the available appointments for today for a location
+  def available_appointments(location)
+    upcoming_appointments.all(location: location, arrival_date: Date.today)
+  end
 end

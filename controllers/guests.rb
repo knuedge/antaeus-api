@@ -12,7 +12,7 @@ api_parse_for(:guests)
 #   "email": "jgnagy@intellisis.com",
 #   "pin": "12345"
 #  }
-post '/guests/verify.json' do
+post '/guests/verify' do
   begin
     fail "Missing Email" if @data.nil? or !@data.key?('email')
     fail "Missing PIN" unless @data.key?('pin')
@@ -34,7 +34,7 @@ end
 # @!group Guests Private Routes
 
 # GET the guests known to the application
-get '/guests.json' do
+get '/guests' do
   begin
     if api_authenticated?
       status 200
@@ -52,7 +52,7 @@ get '/guests.json' do
 end
 
 # GET a Guest search
-get '/guests/search.json' do
+get '/guests/search' do
   begin
     if api_authenticated?
       fail "Missing query" unless params['q']
@@ -70,7 +70,7 @@ get '/guests/search.json' do
 end
 
 # GET the details on a guest
-get '/guests/:guest.json' do
+get '/guests/:guest' do
   begin
     if api_authenticated?
       status 200
@@ -102,7 +102,7 @@ end
 #    "pin": "12345",
 #    "comment": "A contractor with Acme Inc."
 #  }
-post '/guests.json' do
+post '/guests' do
 	begin
     if api_authenticated?
       unless @data.key?('email') && @data.key?('name') && @data.key?('pin')
@@ -154,7 +154,7 @@ end
 #    "location": "SAN",
 #    "comment": "Here to work with our favorite IT Ruby enthusiast: Jonathan Gnagy"
 #  }
-post '/guests/:id/appointments.json' do
+post '/guests/:id/appointments' do
   begin
     if api_authenticated?
       unless @data.key?('arrival') && @data.key?('departure') && @data.key?('contact')
