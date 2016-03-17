@@ -42,15 +42,21 @@ end
 
 # Helper to implement "fetch or add" for the Cache
 def cache_fetch(key, options = {}, &block)
-  result = CACHE.load(key, options)
-  if result.nil?
-    if block_given?
-      CACHE.store(key, block.call, options)
+  begin
+    result = CACHE.load(key, options)
+    if result.nil?
+      if block_given?
+        CACHE.store(key, block.call, options)
+      else
+        nil
+      end
     else
-      nil
+      result
     end
-  else
-    result
+  rescue => e
+    # don't let failures poison the cache
+    CACHE.clear
+    nil
   end
 end
 

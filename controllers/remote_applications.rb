@@ -10,7 +10,7 @@ get '/remote_applications' do
   begin
     if api_authenticated?
       status 200
-      body(RemoteApplication.all.to_json(:only => [:id, :name, :url, :created_at]))
+      body(RemoteApplication.all.serialize(:only => [:id, :name, :url, :created_at]))
     end
   rescue => e
     halt(422, { :error => e.message }.to_json)
@@ -43,7 +43,7 @@ post '/remote_applications' do
         app.save
         app.reload
         status 201
-        body(app.to_json) # returns sensitive info
+        body(app.serialize) # returns sensitive info
       else
         raise "Duplicate Remote Application"
       end
@@ -76,7 +76,7 @@ get '/remote_applications/:id' do |id|
       app = RemoteApplication.get(id)
       if app
         status 200
-        body(app.to_json(:only => [:id, :name, :ident, :url, :created_at, :updated_at]))
+        body(app.serialize(:only => [:id, :name, :ident, :url, :created_at, :updated_at]))
       else
         halt(404) # Forbidden
       end

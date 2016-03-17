@@ -1,6 +1,7 @@
 # API Token table for API user authentication
 class ApiToken
   include DataMapper::Resource
+  include Serializable
 
   property :id,         Serial
   property :dn,         String,   length: 4..255, required: true, index: true, unique_index: :dn

@@ -1,6 +1,7 @@
 # An outside application with full control
 class RemoteApplication
   include DataMapper::Resource
+  include Serializable
 
   property :id,         Serial
   property :name,       String, length: 4..255, required: true, unique_index: true

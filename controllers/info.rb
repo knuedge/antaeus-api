@@ -9,5 +9,5 @@ end
 
 # GET the current status of the application
 get '/info/status' do
-	body({:status => :available}.to_json)
+	body({:api => {:status => :available}}.to_json)
 end

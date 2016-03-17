@@ -20,11 +20,11 @@ module PooledIterator
     iterable
   end
 
-  def self.collect(iterable, pool_size, &block)
+  def self.collect(iterable, pool_size, collection_class = Array, &block)
     q = Queue.new
     m = Mutex.new
     threads = []
-    data = []
+    data = collection_class.new
 
     iterable.each do |i|
       q << Proc.new { block.call(i) }

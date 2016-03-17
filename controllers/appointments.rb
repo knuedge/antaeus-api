@@ -11,7 +11,7 @@ get '/appointments/upcoming' do
       status 200
     	body(
         cache_fetch('upcoming_appts_json', expires: 300) do
-          Appointment.upcoming.to_json(exclude: [:guest_id], relationships: {guest: {exclude: :pin}})
+          Appointment.upcoming.serialize(exclude: [:guest_id], relationships: {guest: {exclude: :pin}})
         end
       )
     else

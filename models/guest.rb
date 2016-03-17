@@ -1,6 +1,7 @@
 # The guests table
 class Guest
   include DataMapper::Resource
+  include Serializable
 
   property :id,         Serial
   property :email,      String,   length: 4..255, required: true, unique_index: true,

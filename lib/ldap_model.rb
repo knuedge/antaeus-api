@@ -1,6 +1,7 @@
 module LDAP
   class Model
     include Comparable
+    include ::Serializable
 
     def initialize(entity)
       @entity = entity
@@ -87,9 +88,25 @@ module LDAP
       cache_key = "all_#{filter}_#{base}"
       result_data = cache_fetch(cache_key, expires: 900) { LDAP.search(filter, base, attrs) }
       cache_fetch("#{to_s.downcase}_all", expires: 300) do
-        PooledIterator.collect(result_data, 4) do |entry|
+        PooledIterator.collect(result_data, 4, Collection) do |entry|
           cache_fetch(entry.dn, expires: 300) { new(entry) }
         end
+      end
+    end
+
+    def self.first(n = nil)
+      if n
+        all.first(n)
+      else
+        all.first
+      end
+    end
+
+    def self.last(n = nil)
+      if n
+        all.last(n)
+      else
+        all.last
       end
     end
 
@@ -100,7 +117,7 @@ module LDAP
 
       result_data = []
       if CACHE_STATUS == :enabled
-        result_data = PooledIterator.collect(all, 8) do |entry|
+        result_data = PooledIterator.collect(all, 8, Collection) do |entry|
           output = nil
           single_value_attributes.each do |ldap_at|
             if entry.send(ldap_at.to_sym).to_s.downcase.match %r(#{query.downcase})
@@ -133,7 +150,7 @@ module LDAP
         result_data = cache_fetch(cache_key, expires: 300) { LDAP.search(filter, base, attrs) }
       end
       cache_fetch("#{to_s.downcase}_search_#{query}", expires: 300) do
-        PooledIterator.collect(result_data.uniq, 4) do |entry|
+        PooledIterator.collect(result_data.uniq, 4, Collection) do |entry|
           cache_fetch(entry.dn, expires: 300) { new(entry) }
         end
       end
@@ -153,18 +170,27 @@ module LDAP
     end
 
     def to_s
-      @entity.send(CONFIG[:ldap]["#{self.class.to_s.downcase}attr".to_sym].to_sym).first.to_s
+      @entity.send(identity_attribute).first.to_s
+    end
+
+    def identity_attribute
+      self.class.identity_attribute
+    end
+
+    # DataMapper-style #attributes Hash
+    def attributes
+      data = {}
+      [:dn, *self.class.single_value_attributes].uniq.each do |attribute|
+        data[attribute.to_sym] = [*@entity.send(attribute.to_sym)].first
+      end
+      self.class.multi_value_attributes.each do |attribute|
+        data[attribute.to_sym] = @entity.send(attribute.to_sym)
+      end
+      data
     end
 
     def to_json(options = {})
-      json_data = {}
-      [:dn, *self.class.single_value_attributes].uniq.each do |attribute|
-        json_data[attribute.to_sym] = [*@entity.send(attribute.to_sym)].first
-      end
-      self.class.multi_value_attributes.each do |attribute|
-        json_data[attribute.to_sym] = @entity.send(attribute.to_sym)
-      end
-      json_data.to_json(options)
+      serialize({format: :json}.merge(options))
     end
 
     def self.from_dn(the_dn)
@@ -179,6 +205,10 @@ module LDAP
            new(entries.first)
         end
       end
+    end
+
+    def self.identity_attribute
+      CONFIG[:ldap]["#{to_s.downcase}attr".to_sym].to_sym
     end
 
     def <=>(other)

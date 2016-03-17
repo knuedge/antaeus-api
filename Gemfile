@@ -6,6 +6,7 @@ gem "sinatra"
 gem "data_mapper"
 gem "dm-mysql-adapter"
 gem "linguistics"
+gem 'require_all'
 
 platforms :ruby do
   gem "mail-gpg"

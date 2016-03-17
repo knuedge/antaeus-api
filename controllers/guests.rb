@@ -20,7 +20,7 @@ post '/guests/verify' do
     guest = Guest.first(email: @data['email'])
     if guest && guest.pin.to_s == @data['pin'].to_s
       status 200
-      body(guest.to_json(exclude: :pin, include: [:available_appointments]))
+      body(guest.serialize(exclude: :pin, include: [:available_appointments]))
     else
       halt(401, { :error => "Verification Failed" }.to_json)
     end
@@ -40,7 +40,7 @@ get '/guests' do
       status 200
     	body(
         cache_fetch('all_guests_json', expires: 60) do
-          Guest.all.to_json(exclude: :pin)
+          Guest.all.serialize(exclude: :pin)
         end
       )
     else
@@ -60,7 +60,7 @@ get '/guests/search' do
     	body(
         cache_fetch("search_guests_#{params['q']}_json", expires: 60) do
           guests = Guest.all(:name.like => "%#{params['q']}") | Guest.all(:email.like => "%#{params['q']}")
-          guests.map {|g| g.to_s }.to_json
+          guests.serialize(only: [:email. :name])
         end
       )
     end
@@ -74,7 +74,7 @@ get '/guests/:guest' do
   begin
     if api_authenticated?
       status 200
-    	body(Guest.first(email: params['guest']).to_json)
+    	body(Guest.first(email: params['guest']).serialize(exclude: :pin))
     end
   rescue => e
     halt(422, { :error => e.message }.to_json)
@@ -127,7 +127,7 @@ post '/guests' do
         guest.save
         guest.reload
         status 201
-        body(guest.to_json(exclude: :pin))
+        body(guest.serialize(exclude: :pin))
       else
         fail "Duplicate Guest"
       end
@@ -182,7 +182,7 @@ post '/guests/:id/appointments' do
         cache_expire('upcoming_appts_json')
 
         status 201
-        body(appt.to_json)
+        body(appt.serialize)
       else
         fail "Invalid guest id #{params['id']}"
       end

@@ -46,7 +46,7 @@ get '/users' do
       status 200
     	body(
         cache_fetch('all_user_json', expires: 900) do
-          PooledIterator.collect(User.all, 4) {|u| u.to_s }.to_json
+          User.all.serialize(only: User.identity_attribute)
         end
       )
     end
@@ -63,7 +63,7 @@ get '/users/search' do
       status 200
     	body(
         cache_fetch("search_user_#{params['q']}_json", expires: 300) do
-          PooledIterator.collect(User.search(params['q']), 6) {|u| u.to_s }.to_json
+          User.search(params['q']).serialize(only: User.identity_attribute)
         end
       )
     end
@@ -77,7 +77,7 @@ get '/users/:name' do
   begin
     if api_authenticated?
       status 200
-    	body(User.from_login(params['name']).to_json)
+    	body(User.from_login(params['name']).serialize)
     end
   rescue => e
     halt(422, { :error => e.message }.to_json)

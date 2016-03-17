@@ -1,6 +1,7 @@
 # The appointments table
 class Appointment
   include DataMapper::Resource
+  include Serializable
 
   property :id,         Serial
 

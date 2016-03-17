@@ -123,18 +123,14 @@ use Rack::CommonLogger, file
 
 # Library updates
 puts '>> Loading internal libraries'
-Dir.glob(File.join(Dir.pwd,'lib/*.rb')).each do |library|
-  require library
-end
+require_all 'lib/*.rb'
 
 puts '>> Connecting to authentication backend (LDAP)'
 LDAP.connect!
 
 # Models
 puts '>> Loading models'
-Dir.glob(File.join(Dir.pwd,'models/*.rb')).each do |model|
-  require model
-end
+require_all 'models/*.rb'
 
 # Finish the data store setup
 DataMapper.finalize
@@ -157,6 +153,4 @@ end
 
 # Controllers
 puts '>> Loading API controllers'
-Dir.glob(File.join(Dir.pwd,'controllers/*.rb')).each do |controller|
-  require controller
-end
+require_all 'controllers/*.rb'
