@@ -19,7 +19,7 @@ end
 
 # POST an new remote application registration.
 #
-# REQUIRED: name, ident (must be between 64 and 255 characters).
+# REQUIRED: app_name, ident (must be between 64 and 255 characters).
 #
 # OPTIONAL: url.
 # @example
