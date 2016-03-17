@@ -6,7 +6,7 @@ class Guest
   property :id,         Serial
   property :email,      String,   length: 4..255, required: true, unique_index: true,
                                   format: :email_address
-  property :name,       String,   required: true, index: true
+  property :full_name,  String,   required: true, index: true
   property :phone,      String
   property :citizenship, String,  required: true, default: 'USA'
   # Does the guest need an NDA?

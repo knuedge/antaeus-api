@@ -10,7 +10,7 @@ get '/remote_applications' do
   begin
     if api_authenticated?
       status 200
-      body(RemoteApplication.all.serialize(:only => [:id, :name, :url, :created_at]))
+      body(RemoteApplication.all.serialize(:only => [:id, :app_name, :url, :created_at]))
     end
   rescue => e
     halt(422, { :error => e.message }.to_json)
@@ -24,17 +24,17 @@ end
 # OPTIONAL: url.
 # @example
 #  {
-#    "name": "A Web Frontend",
+#    "app_name": "A Web Frontend",
 #    "ident": "mt4Myjc7YRcs3pLZY4Myt2LEUEARjOV60VXSEfbBG5w08l/qJ+KfP7bIcSn/rV0S",
 #    "url": "https://antaeus.myawesomesite.com/"
 #  }
 post '/remote_applications' do
 	begin
     if api_authenticated? and @current_user.admin?
-      raise "Missing application data" unless @data.has_key?('name') and @data.has_key?('ident')
+      raise "Missing application data" unless @data.has_key?('app_name') and @data.has_key?('ident')
       if !RemoteApplication.first(:name => @data['name'])
         app = RemoteApplication.new(
-          :name => @data['name'],
+          :app_name => @data['app_name'],
           :ident => @data['ident']
         )
         app.url = @data['url'] if @data.has_key?('url')
@@ -76,7 +76,7 @@ get '/remote_applications/:id' do |id|
       app = RemoteApplication.get(id)
       if app
         status 200
-        body(app.serialize(:only => [:id, :name, :ident, :url, :created_at, :updated_at]))
+        body(app.serialize(:only => [:id, :app_name, :ident, :url, :created_at, :updated_at]))
       else
         halt(404) # Forbidden
       end

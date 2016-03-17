@@ -94,7 +94,7 @@ end
 # @example
 #  {
 #    "email": "user.name@example.com",
-#    "name": "User Name",
+#    "full_name": "User Name",
 #    "phone": "+18585551234",
 #    "citizenship": "USA",
 #    "need_nda": false,
@@ -105,13 +105,13 @@ end
 post '/guests' do
 	begin
     if api_authenticated?
-      unless @data.key?('email') && @data.key?('name') && @data.key?('pin')
+      unless @data.key?('email') && @data.key?('full_name') && @data.key?('pin')
         fail "Missing required data"
       end
       if !Guest.first(:email => @data['email'])
         guest = Guest.new(
           email: @data['email'],
-          name: @data['name'],
+          name: @data['full_name'],
           pin: @data['pin'].to_s
         )
 

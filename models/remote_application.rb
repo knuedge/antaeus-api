@@ -4,7 +4,7 @@ class RemoteApplication
   include Serializable
 
   property :id,         Serial
-  property :name,       String, length: 4..255, required: true, unique_index: true
+  property :app_name,   String, length: 4..255, required: true, unique_index: true
   property :ident,      String, length: 64..255, required: true, unique_index: true
   property :app_key,    Text,   required: true
   property :url,        Text,   format: :url
