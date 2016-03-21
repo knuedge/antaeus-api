@@ -60,7 +60,7 @@ get '/guests/search' do
     	body(
         cache_fetch("search_guests_#{params['q']}_json", expires: 60) do
           guests = Guest.all(:name.like => "%#{params['q']}") | Guest.all(:email.like => "%#{params['q']}")
-          guests.serialize(only: [:email. :name])
+          guests.serialize(only: [:email, :name])
         end
       )
     end

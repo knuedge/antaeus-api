@@ -12,6 +12,7 @@ require 'dm-serializer'
 require 'dm-types'
 require 'dm-transactions'
 require 'linguistics'
+require 'require_all'
 #require 'mail-gpg'
 require 'net/ldap'
 require 'moneta'
@@ -114,6 +115,7 @@ set :logging, true
 set :show_exceptions, false
 set :dump_exceptions, true
 set :raise_errors, true
+set :protection, except: :http_origin
 
 # Logging
 FileUtils.mkdir_p("#{settings.root}/log/")
@@ -139,6 +141,21 @@ DataMapper.auto_upgrade!
 # Be sure to always return JSON
 before '*' do
   content_type 'application/json'
+  headers 'Access-Control-Allow-Origin' => '*',
+          'Access-Control-Allow-Methods' => [
+            'OPTIONS',
+            'DELETE',
+            'GET',
+            'POST',
+            'PUT'
+          ],
+          'Access-Control-Allow-Headers' => [
+            'Content-Type',
+            'X-API-Token',
+            'X-App-Ident',
+            'X-App-Key',
+            'X-On-Behalf-Of'
+          ]
 end
 
 # Background worker for LDAP caching

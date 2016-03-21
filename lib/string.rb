@@ -5,7 +5,7 @@ class String
   # Convert a string to a Base64 encoded version of itself
   # @return [String]
   def to_64
-    Base64.encode64(self)
+    Base64.encode64(self).chomp.gsub("\n", '')
   end
 
   # Decode a Base64 encoded string

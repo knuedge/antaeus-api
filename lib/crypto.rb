@@ -37,9 +37,9 @@ def create_api_key(string, pepper = rand(9**99).to_s)
       string = sha512(string.to_s + pepper)
     end
     # Encrypt the end result to further obfuscate things
-    string = encrypt(string + pepper).gsub("\n", '')
+    string = encrypt(string + pepper)
   end
-  return string[0...32] # return the end result, stripping to 32 characters
+  return string[0...64] # return the end result, stripping to 64 characters
 end
 
 # Create a sufficiently unique and random application key
@@ -53,7 +53,7 @@ def create_app_key(string, pepper = rand(9**99).to_s)
       string = sha512(string + pepper)
     end
     # Encrypt the end result to further obfuscate things
-    string = encrypt(string + pepper).gsub("\n", '')
+    string = encrypt(string + pepper)
   end
   return string[0...128] # return the end result, stripping to 128 characters
 end

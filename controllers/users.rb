@@ -25,7 +25,7 @@ post '/users/authenticate' do
       status 200
       body(
         { 
-          api_token: @current_user.api_token.value,
+          api_token: encrypt(@current_user.to_s + ';;;' + @current_user.api_token.value),
           valid_to: @current_user.api_token.valid_to
         }.to_json
       )
@@ -35,6 +35,10 @@ post '/users/authenticate' do
   rescue => e
     halt(401, { :error => e.message }.to_json)
   end
+end
+
+options '/users/authenticate' do
+  halt 200
 end
 
 # @!group User Private Actions (api key required)

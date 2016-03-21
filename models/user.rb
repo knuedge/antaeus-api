@@ -15,9 +15,15 @@ class User < LDAP::Model
   end
 
   # Authenticate a user from their API token
-  def self.from_token(login, token)
+  def self.from_token(token)
+    begin
+      login, real_token = decrypt(token).split(';;;')
+    rescue => e
+      fail 'Invalid Token'
+    end
+
     user = from_login(login)
-    if user.api_token.value == token
+    if user.api_token.value == real_token
       return user
     else
       fail 'No Matching Token'

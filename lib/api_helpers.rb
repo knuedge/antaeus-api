@@ -6,7 +6,7 @@
 # by parsing the params or request body
 def api_parse_for(controller)
   before /\/#{controller.to_s}(\/.*|\.json)?$/ do
-    if request.get? or request.delete?
+    if request.get? or request.delete? or request.options?
       begin
         @data = params.to_hash
       rescue => e
@@ -31,7 +31,7 @@ def request_headers
   request.env.inject({}) {|acc, (k,v)| acc[$1.downcase] = v if k =~ /^http_(.*)/i; acc}
 end
 
-# Check API auth based on the `x-api-login` and `x-api-token` headers
+# Check API auth based on the `x-api-token` header
 # or based on `x-app-ident`, `x-app-key`, and `x-on-behalf-of` headers
 def api_authenticated?
   data = request_headers
@@ -43,10 +43,9 @@ def api_authenticated?
       raise "Invalid Remote Application Login" unless @via_application and @via_application.app_key == data['x_app_key']
       @current_user = User.from_login(data['x_on_behalf_of'])
     else
-      raise "Missing Login" unless data.has_key?('x_api_login')
       raise "Missing API Token" unless data.has_key?('x_api_token')
 
-      @current_user = User.from_token(data['x_api_login'], data['x_api_token'])
+      @current_user = User.from_token(data['x_api_token'])
     end
     raise "Failed Attempt" unless @current_user and (@current_user.api_token.valid_token? or @via_application)
     return true
