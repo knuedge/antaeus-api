@@ -49,8 +49,14 @@ get '/users' do
     if api_authenticated?
       status 200
     	body(
-        cache_fetch('all_user_json', expires: 900) do
-          User.all.serialize(only: User.identity_attribute)
+        if lazy_request?
+          cache_fetch('all_user_json', expires: 900) do
+            User.all.serialize(only: :id)
+          end
+        else
+          cache_fetch('full_all_user_json', expires: 900) do
+            User.all.serialize
+          end
         end
       )
     end
@@ -66,8 +72,14 @@ get '/users/search' do
       fail "Missing query" unless params['q']
       status 200
     	body(
-        cache_fetch("search_user_#{params['q']}_json", expires: 300) do
-          User.search(params['q']).serialize(only: User.identity_attribute)
+        if lazy_request?
+          cache_fetch("search_user_#{params['q']}_json", expires: 300) do
+            User.search(params['q']).serialize(only: User.identity_attribute)
+          end
+        else
+          cache_fetch("full_search_user_#{params['q']}_json", expires: 300) do
+            User.search(params['q']).serialize
+          end
         end
       )
     end

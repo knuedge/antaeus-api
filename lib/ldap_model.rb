@@ -179,7 +179,7 @@ module LDAP
 
     # DataMapper-style #attributes Hash
     def attributes
-      data = {}
+      data = {id: id}
       [:dn, *self.class.single_value_attributes].uniq.each do |attribute|
         data[attribute.to_sym] = [*@entity.send(attribute.to_sym)].first
       end

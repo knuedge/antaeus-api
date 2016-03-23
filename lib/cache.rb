@@ -66,11 +66,14 @@ def cache_expire(key, options = {})
 end
 
 # Helper for backgroud cache prefetching
-def cache_prefetch(ldap_class)
+def ldap_prefetch(ldap_class)
   start_time = Time.now
   results = ldap_class.all
-  cache_fetch('all_user_json', expires: 900) do
-    PooledIterator.collect(ldap_class.all, 4) {|entry| entry.to_s }.to_json
+  cache_fetch("all_#{ldap_class.name.to_s.downcase}_json", expires: 900) do
+    ldap_class.all.serialize(only: :id)
+  end
+  cache_fetch("full_all_#{ldap_class.name.to_s.downcase}_json", expires: 900) do
+    ldap_class.all.serialize
   end
   end_time = Time.now
   time_taken = end_time - start_time

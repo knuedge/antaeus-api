@@ -10,7 +10,7 @@ get '/appointments/upcoming' do
     if api_authenticated?
       status 200
     	body(
-        cache_fetch('upcoming_appts_json', expires: 300) do
+        cache_fetch('upcoming_appointment_json', expires: 300) do
           Appointment.upcoming.serialize(exclude: [:guest_id], relationships: {guest: {exclude: :pin}})
         end
       )

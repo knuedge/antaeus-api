@@ -54,6 +54,15 @@ def api_authenticated?
   end
 end
 
+# Check if this is a lazy request (meaning whether or not the client wants all available info)
+def lazy_request?
+  if params.key?('lazy') && (!params['lazy'] || params['lazy'].to_s == 'false')
+    false
+  else
+    true
+  end
+end
+
 # Formulate a URI for a resource
 # @return [String] A guess at the URL for a resource
 def api_url(*objects)
