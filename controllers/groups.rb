@@ -13,7 +13,9 @@ get '/groups' do
         if lazy_request?
           cache_fetch('all_group_json', expires: 300) { Group.all.serialize(only: :id) }
         else
-          cache_fetch('full_all_group_json', expires: 300) { Group.all.serialize }
+          cache_fetch('full_all_group_json', expires: 300) {
+            Group.all.serialize
+          }
         end
       )
     else
@@ -53,10 +55,7 @@ get '/groups/:group' do
       status 200
     	body(
         Group.from_attr(params['group']).serialize(
-          exclude: [
-            CONFIG[:ldap][:memberattr].to_sym,
-            :dn
-          ]
+          exclude: [ CONFIG[:ldap][:memberattr].to_sym ]
         )
       )
     end

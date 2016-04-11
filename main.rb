@@ -158,13 +158,24 @@ before '*' do
           ]
 end
 
-# Background worker for LDAP caching
+# Background workers for caching
 unless CACHE_STATUS == :disabled
+  # LDAP caching
   Thread.new do
     loop do
       [User, Group].each {|lc| ldap_prefetch(lc) }
+      sleep 120
+    end
+  end
+
+  # MySQL Data caching
+  Thread.new do
+    loop do
       cache_fetch("upcoming_appointment_json", expires: 300) do
-        Appointment.upcoming.serialize(exclude: [:guest_id], relationships: {guest: {exclude: :pin}})
+        Appointment.upcoming.serialize
+      end
+      cache_fetch('all_guests_json', expires: 120) do
+        Guest.all.serialize(exclude: :pin)
       end
       sleep 120
     end

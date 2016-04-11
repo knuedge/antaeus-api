@@ -99,3 +99,15 @@ get '/users/:name' do
     halt(422, { :error => e.message }.to_json)
   end
 end
+
+# GET the group memberships for a user
+get '/users/:name/memberships' do
+  begin
+    if api_authenticated?
+      status 200
+    	body(User.from_login(params['name']).groups.serialize(only: :id))
+    end
+  rescue => e
+    halt(422, { :error => e.message }.to_json)
+  end
+end

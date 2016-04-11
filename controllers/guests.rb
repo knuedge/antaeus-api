@@ -39,7 +39,7 @@ get '/guests' do
     if api_authenticated?
       status 200
     	body(
-        cache_fetch('all_guests_json', expires: 60) do
+        cache_fetch('all_guests_json', expires: 120) do
           Guest.all.serialize(exclude: :pin)
         end
       )
@@ -70,11 +70,11 @@ get '/guests/search' do
 end
 
 # GET the details on a guest
-get '/guests/:guest' do
+get '/guests/:id' do
   begin
     if api_authenticated?
       status 200
-    	body(Guest.first(email: params['guest']).serialize(exclude: :pin))
+    	body(Guest.get(params['id']).serialize(exclude: :pin))
     end
   rescue => e
     halt(422, { :error => e.message }.to_json)
