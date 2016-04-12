@@ -83,7 +83,7 @@ end
 
 # POST an new guest.
 #
-# REQUIRED: email, name, pin.
+# REQUIRED: email, full_name, pin.
 #
 # REQUIRED (but include defaults):
 #           citizenship (defaults to 'USA')
@@ -111,7 +111,7 @@ post '/guests' do
       if !Guest.first(:email => @data['email'])
         guest = Guest.new(
           email: @data['email'],
-          name: @data['full_name'],
+          full_name: @data['full_name'],
           pin: @data['pin'].to_s
         )
 
@@ -137,6 +137,36 @@ post '/guests' do
 	end
 end
 
+# PUT an update to a guest
+#
+# All keys are optional, but the id can not be changed
+put '/guests/:id' do
+  begin
+    if api_authenticated?
+      if @data.key?('id') && @data['id'].to_s != params['id'].to_s
+        fail "Changing ID NotPermitted"
+      end
+      guest = Guest.get(params['id'])
+
+      # Gather a list of the properties we care about
+      bad_props = [:updated_at, :created_at, :id]
+      props = Guest.properties.map(&:name) - bad_props
+
+      # Set all the props sent, ignoring those we don't know about
+      props.map(&:to_s).each do |prop|
+        guest.send("#{prop}=".to_sym, @data[prop]) if @data.key?(prop)
+      end
+
+      # Complain if saving fails
+      guest.raise_on_save_failure = true
+      guest.save
+      cache_expire('all_guests_json') # need to expire the cache on update
+      halt 204
+    end
+  rescue => e
+    halt(422, { :error => e.message }.to_json)
+  end
+end
 
 # POST an new appointment for a guest.
 #
