@@ -60,7 +60,7 @@ delete '/remote_applications/:id' do |id|
       app = RemoteApplication.get(id)
       raise "Removal of Self Not Permitted" if app == @via_application
       app.destroy
-      halt 200
+      halt 204
     else
       halt(403) # Forbidden
     end

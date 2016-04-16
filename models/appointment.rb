@@ -24,8 +24,31 @@ class Appointment
   property :updated_at, DateTime
 
   belongs_to :guest
+  has 1, :guest_checkin
 
   validates_within :location, :set => [ 'SAN', 'SFO', 'AUS' ]
+
+  after :save do |appt|
+    cache_expire('upcoming_appts_json') # need to expire the cache on save
+  end
+
+  before :destroy do |appt|
+    fail "Exceptions::DestroyCheckedinAppointment" if appt.has_checkin?
+  end
+
+  def has_checkin?
+    guest_checkin ? true : false
+  end
+
+  alias_method :arrived?, :has_checkin?
+
+  def checkin(guest_user = nil)
+    if guest_user
+      GuestCheckin.new(appointment: self, guest: guest_user).save
+    else
+      GuestCheckin.new(appointment: self, guest: self.guest).save
+    end
+  end
 
   # Map a contact to its actual user
   # @return [User]

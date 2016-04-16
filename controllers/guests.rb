@@ -4,15 +4,15 @@ api_parse_for(:guests)
 
 # @!group Guest Public Routes
 
-# Verify a Guest.
+# Login a Guest.
 #
 # REQUIRED: email, pin
 # @example
 #  {
-#   "email": "jgnagy@intellisis.com",
+#   "email": "jgnagy@example.com",
 #   "pin": "12345"
 #  }
-post '/guests/verify' do
+post '/guests/login' do
   begin
     fail "Missing Email" if @data.nil? or !@data.key?('email')
     fail "Missing PIN" unless @data.key?('pin')
@@ -20,16 +20,21 @@ post '/guests/verify' do
     guest = Guest.first(email: @data['email'])
     if guest && guest.pin.to_s == @data['pin'].to_s
       status 200
-      body(guest.serialize(exclude: :pin, include: [:available_appointments]))
+      token = guest.token
+      valid_until = decrypt(token).split(';;;')[2]
+      body(
+        {
+          guest_token: guest.token,
+          valid_to: valid_until
+        }.to_json
+      )
     else
-      halt(401, { :error => "Verification Failed" }.to_json)
+      halt(401, { :error => "Login Failed" }.to_json)
     end
   rescue => e
     halt(401, { :error => e.message }.to_json)
   end
 end
-
-
 
 # @!group Guests Private Routes
 
@@ -44,7 +49,7 @@ get '/guests' do
         end
       )
     else
-      fail "Insufficient Privileges"
+      halt(403) # Forbidden
     end
   rescue => e
     halt(422, { :error => e.message }.to_json)
@@ -63,6 +68,8 @@ get '/guests/search' do
           guests.serialize(only: [:email, :name])
         end
       )
+    else
+      halt(403) # Forbidden
     end
   rescue => e
     halt(422, { :error => e.message }.to_json)
@@ -72,9 +79,11 @@ end
 # GET the details on a guest
 get '/guests/:id' do
   begin
-    if api_authenticated?
+    if api_authenticated?(false) || (guest_authenticated? && @current_guest.id == params['id'])
       status 200
     	body(Guest.get(params['id']).serialize(exclude: :pin))
+    else
+      halt(403) # Forbidden
     end
   rescue => e
     halt(422, { :error => e.message }.to_json)
@@ -131,6 +140,8 @@ post '/guests' do
       else
         fail "Duplicate Guest"
       end
+    else
+      halt(403) # Forbidden
     end
 	rescue => e
 		halt(422, { :error => e.message }.to_json)
@@ -142,7 +153,7 @@ end
 # All keys are optional, but the id can not be changed
 put '/guests/:id' do
   begin
-    if api_authenticated?
+    if api_authenticated?(false) || (guest_authenticated? && @current_guest.id == params['id'])
       if @data.key?('id') && @data['id'].to_s != params['id'].to_s
         fail "Changing ID NotPermitted"
       end
@@ -160,8 +171,48 @@ put '/guests/:id' do
       # Complain if saving fails
       guest.raise_on_save_failure = true
       guest.save
-      cache_expire('all_guests_json') # need to expire the cache on update
       halt 204
+    else
+      halt(403) # Forbidden
+    end
+  rescue => e
+    halt(422, { :error => e.message }.to_json)
+  end
+end
+
+# DELETE a guest
+#
+# This action doesn't do anything, for security / retention reasons
+delete '/guests/:id' do |guest_id|
+  begin
+#    if api_authenticated?
+#      guest = Guest.get(guest_id)
+#      guest.destroy # cascades through dm-constraints
+#      cache_expire('all_guests_json') # need to expire the cache on deletes
+#      halt 200
+#    else
+      halt(403) # Forbidden
+#    end
+  rescue => e
+    halt(422, { :error => e.message }.to_json)
+  end
+end
+
+# GET a guest's upcoming appointments
+#
+# REQUIRED: id (via URI)
+get '/guests/:id/appointments' do
+  begin
+    if api_authenticated?(false) || (guest_authenticated? && @current_guest.id == params['id'])
+      guest = Guest.get(params['id'])
+      status 200
+      if params.key?('all') && params['all']
+        body(guest.appointments.serialize.serialize(include: :arrived?))
+      else
+        body(guest.upcoming_appointments.serialize(include: :arrived?))
+      end
+    else
+      halt(403) # Forbidden
     end
   rescue => e
     halt(422, { :error => e.message }.to_json)
@@ -208,14 +259,13 @@ post '/guests/:id/appointments' do
         appt.save
         appt.reload
 
-        # expire our cache of appointments
-        cache_expire('upcoming_appts_json')
-
         status 201
         body(appt.serialize)
       else
         fail "Invalid guest id #{params['id']}"
       end
+    else
+      halt(403) # Forbidden
     end
   rescue => e
     halt(422, { :error => e.message }.to_json)

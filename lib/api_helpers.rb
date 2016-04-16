@@ -33,7 +33,7 @@ end
 
 # Check API auth based on the `x-api-token` header
 # or based on `x-app-ident`, `x-app-key`, and `x-on-behalf-of` headers
-def api_authenticated?
+def api_authenticated?(fail_on_error = true)
   data = request_headers
   begin
     if data.has_key?('x_app_ident')
@@ -50,7 +50,38 @@ def api_authenticated?
     raise "Failed Attempt" unless @current_user and (@current_user.api_token.valid_token? or @via_application)
     return true
   rescue => e
-    halt(401, { :error => "Authentication Failed: #{e.message}" }.to_json)
+    if fail_on_error
+      halt(401, { :error => "Authentication Failed: #{e.message}" }.to_json)
+    else
+      false
+    end
+  end
+end
+
+# Check Guest API auth based on the `x-api-token` header
+# or based on `x-app-ident`, `x-app-key`, and `x-on-behalf-of` headers
+def guest_authenticated?(fail_on_error = true)
+  data = request_headers
+  begin
+    if data.has_key?('x_app_ident')
+      raise "Missing Application Key" unless data.has_key?('x_app_key')
+      @via_application = RemoteApplication.first(:ident => data['x_app_ident'])
+
+      raise "Invalid Remote Application Login" unless @via_application and @via_application.app_key == data['x_app_key']
+      @current_guest = Guest.first(email: data['x_on_behalf_of'])
+    else
+      raise "Missing API Token" unless data.has_key?('x_guest_token')
+
+      @current_guest = Guest.from_token(data['x_guest_token'])
+    end
+    raise "Failed Attempt" unless @current_guest
+    return true
+  rescue => e
+    if fail_on_error
+      halt(401, { :error => "Authentication Failed: #{e.message}" }.to_json)
+    else
+      false
+    end
   end
 end
 

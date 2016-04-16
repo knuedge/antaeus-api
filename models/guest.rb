@@ -20,10 +20,41 @@ class Guest
   property :pin,        Text,    required: true
   property :created_at, DateTime
   property :updated_at, DateTime
+  property :deleted_at, ParanoidDateTime # this ensures things aren't really deleted
   
   validates_format_of :pin, :with => /^\d{4,6}$/
 
   has n, :appointments
+  has n, :guest_checkins
+
+  after :save do |guest|
+    cache_expire('all_guests_json') # need to expire the cache on save
+  end
+
+  # Authenticate a Guest from their crafted API token
+  # Guest tokens take the lazy way out, since guests are already very limited
+  def self.from_token(token)
+    begin
+      # Guest tokens should be:
+      # <guest id>;;;<encrypted PIN>;;;<datestamp>
+      gid, real_token, datestamp = decrypt(token).split(';;;')
+      # only allow these tokens to be valid for 24 hours (60 * 60 * 24)
+      fail 'Expired Token' if (Time.now - Time.parse(datestamp)) > 86400
+    rescue => e
+      fail 'Invalid Token'
+    end
+
+    guest = get(gid)
+    if guest.pin.to_s == decrypt(real_token).to_s
+      return guest
+    else
+      fail 'No Matching Token'
+    end
+  end
+
+  def token
+    encrypt [id.to_s, encrypt(pin), Time.now.to_s].join(';;;')
+  end
 
   # Decrypt the guest's PIN before returning it
   # @return [String]
