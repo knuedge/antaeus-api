@@ -12,7 +12,7 @@ get '/appointments' do
       status 200
     	body(
         cache_fetch('all_appointment_json', expires: 300) do
-          Appointment.all.serialize
+          Appointment.all.serialize(include: :arrived?)
         end
       )
     else
@@ -31,7 +31,7 @@ get '/appointments/upcoming' do
       status 200
     	body(
         cache_fetch('upcoming_appointment_json', expires: 300) do
-          Appointment.upcoming.serialize
+          Appointment.upcoming.serialize(include: :arrived?)
         end
       )
     else
@@ -65,7 +65,7 @@ get '/appointments/:id' do |id|
       app = Appointment.get(id)
       if app
         status 200
-        body app.serialize
+        body app.serialize(include: :arrived?)
       else
         halt(404) # Can't find what you're looking for
       end

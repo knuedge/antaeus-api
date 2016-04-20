@@ -1,7 +1,10 @@
 # Poor-man's implementation of ActiveRecord::Serializer
 module Serializable
   def serialize(options = {})
-    if is_a?(LDAP::Collection) || is_a?(DataMapper::Collection) || is_a?(Array)
+    if is_a?(DataMapper::Collection) || is_a?(LDAP::Collection)
+      root = model.name.en.plural.to_underscore
+    elsif is_a?(Array)
+      fail "Exceptions::EmptyArrayRoot" if empty?
       root = first.class.name.en.plural.to_underscore
     else
       root = self.class.name.to_underscore
@@ -16,13 +19,13 @@ module Serializable
 
   def prepare_for_serialization(options = {})
     if is_a?(LDAP::Collection) || is_a?(DataMapper::Collection) || is_a?(Array)
-      return PooledIterator.collect(self, 8) do |model|
-        if model.respond_to?(:prepare_for_serialization)
-          model.prepare_for_serialization(options)
-        elsif model.respond_to?(:to_hash)
-          model.to_hash
+      return PooledIterator.collect(self, 8) do |serializable_model|
+        if serializable_model.respond_to?(:prepare_for_serialization)
+          serializable_model.prepare_for_serialization(options)
+        elsif serializable_model.respond_to?(:to_hash)
+          serializable_model.to_hash
         else
-          model.to_s
+          serializable_model.to_s
         end
       end
     elsif options[:only]

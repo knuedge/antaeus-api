@@ -207,7 +207,7 @@ get '/guests/:id/appointments' do
       guest = Guest.get(params['id'])
       status 200
       if params.key?('all') && params['all']
-        body(guest.appointments.serialize.serialize(include: :arrived?))
+        body(guest.appointments.serialize(include: :arrived?))
       else
         body(guest.upcoming_appointments.serialize(include: :arrived?))
       end

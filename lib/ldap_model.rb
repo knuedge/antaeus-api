@@ -87,11 +87,13 @@ module LDAP
       base   = CONFIG[:ldap]["#{to_s.downcase}base".to_sym]
       cache_key = "all_#{filter}_#{base}"
       result_data = cache_fetch(cache_key, expires: 900) { LDAP.search(filter, base, attrs) }
-      cache_fetch("#{to_s.downcase}_all", expires: 300) do
+      collection = cache_fetch("#{to_s.downcase}_all", expires: 300) do
         PooledIterator.collect(result_data, 4, Collection) do |entry|
           cache_fetch(entry.dn, expires: 300) { new(entry) }
         end
       end
+      collection.model = self
+      return collection
     end
 
     def self.first(n = nil)
@@ -149,11 +151,13 @@ module LDAP
         cache_key = "search_#{filter}_#{base}"
         result_data = cache_fetch(cache_key, expires: 300) { LDAP.search(filter, base, attrs) }
       end
-      cache_fetch("#{to_s.downcase}_search_#{query}", expires: 300) do
+      collection = cache_fetch("#{to_s.downcase}_search_#{query}", expires: 300) do
         PooledIterator.collect(result_data.uniq, 4, Collection) do |entry|
           cache_fetch(entry.dn, expires: 300) { new(entry) }
         end
       end
+      collection.model = self
+      return collection
     end
 
     def raw
