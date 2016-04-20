@@ -13,7 +13,7 @@ get '/appointments' do
       status 200
     	body(
         cache_fetch('all_appointment_json', expires: 300) do
-          Appointment.all.serialize(include: :arrived?)
+          Appointment.all.serialize(include: [:arrived?, :approved?])
         end
       )
     else
@@ -32,7 +32,7 @@ get '/appointments/upcoming' do
       status 200
     	body(
         cache_fetch('upcoming_appointment_json', expires: 300) do
-          Appointment.upcoming.serialize(include: :arrived?)
+          Appointment.upcoming.serialize(include: [:arrived?, :approved?])
         end
       )
     else
@@ -52,7 +52,7 @@ get '/appointments/search' do
     	body(
         cache_fetch("search_appointments_#{params['q']}_json", expires: 60) do
           appts = Appointment.all(:contact.like => "%#{params['q']}%") | Appointment.all(:comment.like => "%#{params['q']}%")
-          appts.serialize(include: :arrived?)
+          appts.serialize(include: [:arrived?, :approved?])
         end
       )
     else
@@ -104,7 +104,7 @@ post '/appointments' do
       appt.save
       appt.reload
       status 201
-      body(appt.serialize(include: :arrived?))
+      body(appt.serialize(include: [:arrived?, :approved?]))
     else
       halt(403) # Forbidden
     end
@@ -168,13 +168,39 @@ get '/appointments/:id' do |id|
       app = Appointment.get(id)
       if app
         status 200
-        body app.serialize(include: :arrived?)
+        body app.serialize(include: [:arrived?, :approved?])
       else
         halt(404) # Can't find what you're looking for
       end
     else
       halt(403) # Forbidden
     end
+  rescue => e
+    halt(422, { :error => e.message }.to_json)
+  end
+end
+
+# PATCH an approval change for an appointment
+#
+# REQUIRED: approve
+# @example
+#  {
+#   "approve": true
+#  }
+patch '/appointments/:id/approve' do |id|
+  begin
+    fail Exceptions::MissingProperty unless @data.key?('approve')
+    app = Appointment.get(id)
+    if api_authenticated? and @current_user.admin?
+      if app
+        app.change_approval(@data['approve'], @current_user)
+      else
+        halt(404)
+      end
+    else
+      halt(403) # Forbidden
+    end
+    halt(204)
   rescue => e
     halt(422, { :error => e.message }.to_json)
   end

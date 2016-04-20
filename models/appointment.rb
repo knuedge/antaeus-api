@@ -25,15 +25,21 @@ class Appointment
 
   belongs_to :guest
   has 1, :guest_checkin
+  has 1, :approval
 
   validates_within :location, :set => [ 'SAN', 'SFO', 'AUS' ]
 
   after :save do |appt|
     cache_expire('upcoming_appts_json') # need to expire the cache on save
+    cache_expire('all_appointment_json')
   end
 
   before :destroy do |appt|
     fail Exceptions::ForbiddenChange if appt.has_checkin?
+  end
+
+  def approved?
+    approval ? true : false
   end
 
   def has_checkin?
@@ -42,12 +48,26 @@ class Appointment
 
   alias_method :arrived?, :has_checkin?
 
+  def change_approval(status, user)
+    fail Exceptions::ForbiddenChange if has_checkin?
+    if status
+      Approval.new(appointment: self, dn: user.dn).save unless approved?
+    else
+      approval.destroy if approved?
+    end
+    cache_expire('upcoming_appts_json')
+    cache_expire('all_appointment_json')
+  end
+
   def checkin(guest_user = nil)
+    fail Exceptions::ForbiddenChange unless approved?
     if guest_user
       GuestCheckin.new(appointment: self, guest: guest_user).save
     else
       GuestCheckin.new(appointment: self, guest: self.guest).save
     end
+    cache_expire('upcoming_appts_json')
+    cache_expire('all_appointment_json')
   end
 
   # Map a contact to its actual user
