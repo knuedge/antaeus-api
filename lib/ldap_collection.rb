@@ -6,7 +6,7 @@ module LDAP
 
     def model=(class_name)
       if @model
-        fail "Exceptions::NoOverridingCollectionModel"
+        fail Exceptions::ForbiddenChange
       else
         @model = class_name
       end

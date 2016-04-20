@@ -16,8 +16,8 @@ api_parse_for(:users)
 #  }
 post '/users/authenticate' do
   begin
-    fail "Missing Login" if @data.nil? or !@data.has_key?('login')
-    fail "Missing Password" unless @data.has_key?('password')
+    fail Exceptions::MissingProperty if @data.nil? or !@data.has_key?('login')
+    fail Exceptions::MissingProperty unless @data.has_key?('password')
 
     @current_user = User.from_login(@data['login'])
     if @current_user && LDAP.test_auth(@current_user.dn, @data['password'])
@@ -69,7 +69,7 @@ end
 get '/users/search' do
   begin
     if api_authenticated?
-      fail "Missing query" unless params['q']
+      fail Exceptions::MissingQuery unless params['q']
       status 200
     	body(
         if lazy_request?

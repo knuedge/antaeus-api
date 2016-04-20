@@ -1,0 +1,2 @@
+class AntaeusException < StandardError
+end

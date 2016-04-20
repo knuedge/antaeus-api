@@ -33,7 +33,7 @@ class Appointment
   end
 
   before :destroy do |appt|
-    fail "Exceptions::DestroyCheckedinAppointment" if appt.has_checkin?
+    fail Exceptions::ForbiddenChange if appt.has_checkin?
   end
 
   def has_checkin?

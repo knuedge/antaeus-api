@@ -14,8 +14,8 @@ api_parse_for(:guests)
 #  }
 post '/guests/login' do
   begin
-    fail "Missing Email" if @data.nil? or !@data.key?('email')
-    fail "Missing PIN" unless @data.key?('pin')
+    fail Exceptions::MissingProperty if @data.nil? or !@data.key?('email')
+    fail Exceptions::MissingProperty unless @data.key?('pin')
 
     guest = Guest.first(email: @data['email'])
     if guest && guest.pin.to_s == @data['pin'].to_s
@@ -60,7 +60,7 @@ end
 get '/guests/search' do
   begin
     if api_authenticated?
-      fail "Missing query" unless params['q']
+      fail Exceptions::MissingQuery unless params['q']
       status 200
     	body(
         cache_fetch("search_guests_#{params['q']}_json", expires: 60) do
@@ -115,7 +115,7 @@ post '/guests' do
 	begin
     if api_authenticated?
       unless @data.key?('email') && @data.key?('full_name') && @data.key?('pin')
-        fail "Missing required data"
+        fail Exceptions::MissingProperty
       end
       if !Guest.first(:email => @data['email'])
         guest = Guest.new(
@@ -138,7 +138,7 @@ post '/guests' do
         status 201
         body(guest.serialize(exclude: :pin))
       else
-        fail "Duplicate Guest"
+        fail Exceptions::DuplicateResource
       end
     else
       halt(403) # Forbidden
@@ -155,7 +155,7 @@ put '/guests/:id' do
   begin
     if api_authenticated?(false) || (guest_authenticated? && @current_guest.id == params['id'])
       if @data.key?('id') && @data['id'].to_s != params['id'].to_s
-        fail "Changing ID NotPermitted"
+        fail Exceptions::ForbiddenChange
       end
       guest = Guest.get(params['id'])
 
@@ -239,7 +239,7 @@ post '/guests/:id/appointments' do
   begin
     if api_authenticated?
       unless @data.key?('arrival') && @data.key?('departure') && @data.key?('contact')
-        fail "Missing required data"
+        fail Exceptions::MissingProperty
       end
       guest = Guest.get(params['id'])
       if guest

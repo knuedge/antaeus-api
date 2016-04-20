@@ -19,7 +19,7 @@ get '/groups' do
         end
       )
     else
-      fail "Insufficient Privileges"
+      halt(403) # Forbidden
     end
   rescue => e
     halt(422, { :error => e.message }.to_json)
@@ -42,6 +42,8 @@ get '/groups/search' do
           end
         end
       )
+    else
+      halt(403) # Forbidden
     end
   rescue => e
     halt(422, { :error => e.message }.to_json)
@@ -58,6 +60,8 @@ get '/groups/:group' do
           exclude: [ CONFIG[:ldap][:memberattr].to_sym ]
         )
       )
+    else
+      halt(403) # Forbidden
     end
   rescue => e
     halt(422, { :error => e.message }.to_json)
@@ -81,7 +85,7 @@ get '/groups/:group/members' do
         end
       )
     else
-      fail "Insufficient Privileges"
+      halt(403) # Forbidden
     end
   rescue => e
     halt(422, { :error => e.message }.to_json)

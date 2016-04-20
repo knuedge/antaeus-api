@@ -4,7 +4,7 @@ module Serializable
     if is_a?(DataMapper::Collection) || is_a?(LDAP::Collection)
       root = model.name.en.plural.to_underscore
     elsif is_a?(Array)
-      fail "Exceptions::EmptyArrayRoot" if empty?
+      fail Exceptions::EmptyArrayRoot if empty?
       root = first.class.name.en.plural.to_underscore
     else
       root = self.class.name.to_underscore

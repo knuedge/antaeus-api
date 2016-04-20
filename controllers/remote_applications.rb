@@ -31,7 +31,7 @@ end
 post '/remote_applications' do
 	begin
     if api_authenticated? and @current_user.admin?
-      raise "Missing application data" unless @data.has_key?('app_name') and @data.has_key?('ident')
+      fail Exceptions::MissingProperty unless @data.has_key?('app_name') and @data.has_key?('ident')
       if !RemoteApplication.first(:name => @data['name'])
         app = RemoteApplication.new(
           :app_name => @data['app_name'],
@@ -45,12 +45,49 @@ post '/remote_applications' do
         status 201
         body(app.serialize) # returns sensitive info
       else
-        raise "Duplicate Remote Application"
+        fail Exceptions::DuplicateResource
       end
+    else
+      halt(403) # Forbidden
     end
 	rescue => e
 		halt(422, { :error => e.message }.to_json)
 	end
+end
+
+# PUT an update to a remote application
+#
+# All keys are optional, but the id can not be changed
+put '/remote_applications/:id' do
+  begin
+    if api_authenticated? and @current_user.admin?
+      if @data.key?('id') && @data['id'].to_s != params['id'].to_s
+        fail Exceptions::ForbiddenChange
+      end
+      app = RemoteApplication.get(params['id'])
+
+      # TODO check if app_key is passed and check it for sufficient complexity
+      # For now, just ignore the key below if it is passed in
+
+      # Gather a list of the properties we care about
+      bad_props = [:updated_at, :created_at, :id, :app_key]
+      props = RemoteApplication.properties.map(&:name) - bad_props
+
+      # Set all the props sent, ignoring those we don't know about
+      props.map(&:to_s).each do |prop|
+        app.send("#{prop}=".to_sym, @data[prop]) if @data.key?(prop)
+      end
+
+      # Complain if saving fails
+      app.raise_on_save_failure = true
+      app.save
+      halt 204
+    else
+      halt(403) # Forbidden
+    end
+  rescue => e
+    halt(422, { :error => e.message }.to_json)
+  end
 end
 
 # DELETE a remote application registration
@@ -58,7 +95,7 @@ delete '/remote_applications/:id' do |id|
   begin
     if api_authenticated? and @current_user.admin?
       app = RemoteApplication.get(id)
-      raise "Removal of Self Not Permitted" if app == @via_application
+      fail Exceptions::ForbiddenChange if app == @via_application
       app.destroy
       halt 204
     else
@@ -76,10 +113,12 @@ get '/remote_applications/:id' do |id|
       app = RemoteApplication.get(id)
       if app
         status 200
-        body(app.serialize(:only => [:id, :app_name, :ident, :url, :created_at, :updated_at]))
+        body(app.serialize)
       else
-        halt(404) # Forbidden
+        halt(404) # Can't find it
       end
+    else
+      halt(403) # Forbidden
     end
   rescue => e
     halt(422, { :error => e.message }.to_json)

@@ -49,7 +49,7 @@ DataMapper.setup(:default, CONFIG[:db])
 
 # Library updates
 puts '>> Loading internal libraries'
-require_all 'lib/*.rb'
+require_all Dir.glob('lib/*.rb') + Dir.glob('exceptions/*.rb')
 
 puts '>> Connecting to authentication backend (LDAP)'
 LDAP.connect!
