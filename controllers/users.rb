@@ -3,6 +3,7 @@
 ## Filters
 
 api_parse_for(:users)
+register_capability(:users, version: APP_VERSION)
 
 # @!group User Public Actions (no api key required)
 

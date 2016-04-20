@@ -1,6 +1,7 @@
 # The appointments Controller
 
 api_parse_for(:appointments)
+register_capability(:appointments, version: APP_VERSION)
 
 # @!group Guests Private Routes
 
@@ -32,6 +33,27 @@ get '/appointments/upcoming' do
     	body(
         cache_fetch('upcoming_appointment_json', expires: 300) do
           Appointment.upcoming.serialize(include: :arrived?)
+        end
+      )
+    else
+      halt(403) # Forbidden
+    end
+  rescue => e
+    halt(422, { :error => e.message }.to_json)
+  end
+end
+
+# GET an Appointments search
+get '/appointments/search' do
+  begin
+    if api_authenticated?
+      fail Exceptions::MissingQuery unless params['q']
+      status 200
+    	body(
+        cache_fetch("search_appointments_#{params['q']}_json", expires: 60) do
+          appts = Appointment.all(:contact.like => "%#{params['q']}") | Appointment.all(:comment.like => "%#{params['q']}") |
+            Appointment.all(:arrival_date.eql => "%#{params['q']}") | Appointment.all(:departure.eql => "%#{params['q']}")
+          appts.serialize(include: :arrived?)
         end
       )
     else

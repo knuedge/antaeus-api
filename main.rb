@@ -4,6 +4,7 @@ require "bundler/setup"
 require 'sinatra'
 require 'yaml'
 require 'json'
+require 'singleton'
 require 'dm-core'
 require 'dm-validations'
 require 'dm-timestamps'

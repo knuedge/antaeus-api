@@ -1,6 +1,7 @@
 # The guests Controller
 
 api_parse_for(:guests)
+register_capability(:guests, version: APP_VERSION)
 
 # @!group Guest Public Routes
 
@@ -34,6 +35,10 @@ post '/guests/login' do
   rescue => e
     halt(401, { :error => e.message }.to_json)
   end
+end
+
+options '/guests/login' do
+  halt 200
 end
 
 # @!group Guests Private Routes

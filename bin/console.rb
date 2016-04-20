@@ -7,6 +7,7 @@ require "bundler/setup"
 
 require 'yaml'
 require 'json'
+require 'singleton'
 require 'dm-core'
 require 'dm-validations'
 require 'dm-timestamps'

@@ -1,6 +1,7 @@
 # The groups Controller
 
 api_parse_for(:groups)
+register_capability(:groups, version: APP_VERSION)
 
 # @!group Public Routes
 

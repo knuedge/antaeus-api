@@ -111,3 +111,8 @@ def api_url(*objects)
     halt(501, { :error => e.message }.to_json)
   end
 end
+
+# Add a capability to the Capabilities hash
+def register_capability(capability_heading, data)
+  Capabilities.instance[capability_heading] = data
+end

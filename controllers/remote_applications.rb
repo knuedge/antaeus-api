@@ -2,6 +2,9 @@
 
 # Filters
 api_parse_for(:remote_applications)
+register_capability(:remote_applications, version: APP_VERSION)
+
+# TODO: searching
 
 # @!group Remote App Private (authenticated) Actions
 
