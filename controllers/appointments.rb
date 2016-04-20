@@ -51,8 +51,7 @@ get '/appointments/search' do
       status 200
     	body(
         cache_fetch("search_appointments_#{params['q']}_json", expires: 60) do
-          appts = Appointment.all(:contact.like => "%#{params['q']}") | Appointment.all(:comment.like => "%#{params['q']}") |
-            Appointment.all(:arrival_date.eql => "%#{params['q']}") | Appointment.all(:departure.eql => "%#{params['q']}")
+          appts = Appointment.all(:contact.like => "%#{params['q']}%") | Appointment.all(:comment.like => "%#{params['q']}%")
           appts.serialize(include: :arrived?)
         end
       )
