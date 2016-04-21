@@ -4,8 +4,6 @@
 api_parse_for(:remote_applications)
 register_capability(:remote_applications, version: APP_VERSION)
 
-# TODO: searching
-
 # @!group Remote App Private (authenticated) Actions
 
 # GET all remote applications
@@ -14,6 +12,26 @@ get '/remote_applications' do
     if api_authenticated?
       status 200
       body(RemoteApplication.all.serialize(:only => [:id, :app_name, :url, :created_at]))
+    end
+  rescue => e
+    halt(422, { :error => e.message }.to_json)
+  end
+end
+
+# GET an Remote Application search
+get '/remote_applications/search' do
+  begin
+    if api_authenticated? and @current_user.admin?
+      fail Exceptions::MissingQuery unless params['q']
+      status 200
+    	body(
+        cache_fetch("search_remote_application_#{params['q']}_json", expires: 60) do
+          appts = RemoteApplication.all(:name.like => "%#{params['q']}%") | RemoteApplication.all(:url.like => "%#{params['q']}%")
+          appts.serialize(:only => [:id, :app_name, :url, :created_at])
+        end
+      )
+    else
+      halt(403) # Forbidden
     end
   rescue => e
     halt(422, { :error => e.message }.to_json)
