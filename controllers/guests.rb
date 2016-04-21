@@ -45,7 +45,7 @@ end
 
 # GET the guests known to the application
 get '/guests' do
-  begin
+  api_action do
     if api_authenticated?
       status 200
     	body(
@@ -56,14 +56,12 @@ get '/guests' do
     else
       halt(403) # Forbidden
     end
-  rescue => e
-    halt(422, { :error => e.message }.to_json)
   end
 end
 
 # GET a Guest search
 get '/guests/search' do
-  begin
+  api_action do
     if api_authenticated?
       fail Exceptions::MissingQuery unless params['q']
       status 200
@@ -76,22 +74,18 @@ get '/guests/search' do
     else
       halt(403) # Forbidden
     end
-  rescue => e
-    halt(422, { :error => e.message }.to_json)
   end
 end
 
 # GET the details on a guest
 get '/guests/:id' do
-  begin
+  api_action do
     if api_authenticated?(false) || (guest_authenticated? && @current_guest.id == params['id'])
       status 200
     	body(Guest.get(params['id']).serialize(exclude: :pin))
     else
       halt(403) # Forbidden
     end
-  rescue => e
-    halt(422, { :error => e.message }.to_json)
   end
 end
 
@@ -117,7 +111,7 @@ end
 #    "comment": "A contractor with Acme Inc."
 #  }
 post '/guests' do
-	begin
+	api_action do
     if api_authenticated?
       unless @data.key?('email') && @data.key?('full_name') && @data.key?('pin')
         fail Exceptions::MissingProperty
@@ -148,8 +142,6 @@ post '/guests' do
     else
       halt(403) # Forbidden
     end
-	rescue => e
-		halt(422, { :error => e.message }.to_json)
 	end
 end
 
@@ -157,7 +149,7 @@ end
 #
 # All keys are optional, but the id can not be changed
 put '/guests/:id' do
-  begin
+  api_action do
     if api_authenticated?(false) || (guest_authenticated? && @current_guest.id == params['id'])
       if @data.key?('id') && @data['id'].to_s != params['id'].to_s
         fail Exceptions::ForbiddenChange
@@ -180,8 +172,6 @@ put '/guests/:id' do
     else
       halt(403) # Forbidden
     end
-  rescue => e
-    halt(422, { :error => e.message }.to_json)
   end
 end
 
@@ -189,7 +179,7 @@ end
 #
 # This action doesn't do anything, for security / retention reasons
 delete '/guests/:id' do |guest_id|
-  begin
+  api_action do
 #    if api_authenticated?
 #      guest = Guest.get(guest_id)
 #      guest.destroy # cascades through dm-constraints
@@ -198,8 +188,6 @@ delete '/guests/:id' do |guest_id|
 #    else
       halt(403) # Forbidden
 #    end
-  rescue => e
-    halt(422, { :error => e.message }.to_json)
   end
 end
 
@@ -207,7 +195,7 @@ end
 #
 # REQUIRED: id (via URI)
 get '/guests/:id/appointments' do
-  begin
+  api_action do
     if api_authenticated?(false) || (guest_authenticated? && @current_guest.id == params['id'])
       guest = Guest.get(params['id'])
       status 200
@@ -219,8 +207,6 @@ get '/guests/:id/appointments' do
     else
       halt(403) # Forbidden
     end
-  rescue => e
-    halt(422, { :error => e.message }.to_json)
   end
 end
 
@@ -241,7 +227,7 @@ end
 #    "comment": "Here to work with our favorite IT Ruby enthusiast: Jonathan Gnagy"
 #  }
 post '/guests/:id/appointments' do
-  begin
+  api_action do
     if api_authenticated?
       unless @data.key?('arrival') && @data.key?('departure') && @data.key?('contact')
         fail Exceptions::MissingProperty
@@ -272,7 +258,5 @@ post '/guests/:id/appointments' do
     else
       halt(403) # Forbidden
     end
-  rescue => e
-    halt(422, { :error => e.message }.to_json)
   end
 end

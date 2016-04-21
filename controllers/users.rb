@@ -46,7 +46,7 @@ end
 
 # GET the current version of the application
 get '/users' do
-  begin
+  api_action do
     if api_authenticated?
       status 200
     	body(
@@ -61,14 +61,12 @@ get '/users' do
         end
       )
     end
-  rescue => e
-    halt(422, { :error => e.message }.to_json)
   end
 end
 
 # GET a User search
 get '/users/search' do
-  begin
+  api_action do
     if api_authenticated?
       fail Exceptions::MissingQuery unless params['q']
       status 200
@@ -84,31 +82,25 @@ get '/users/search' do
         end
       )
     end
-  rescue => e
-    halt(422, { :error => e.message }.to_json)
   end
 end
 
 # GET the details on a user
 get '/users/:name' do
-  begin
+  api_action do
     if api_authenticated?
       status 200
     	body(User.from_login(params['name']).serialize)
     end
-  rescue => e
-    halt(422, { :error => e.message }.to_json)
   end
 end
 
 # GET the group memberships for a user
 get '/users/:name/memberships' do
-  begin
+  api_action do
     if api_authenticated?
       status 200
     	body(User.from_login(params['name']).groups.serialize(only: :id))
     end
-  rescue => e
-    halt(422, { :error => e.message }.to_json)
   end
 end

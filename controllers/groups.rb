@@ -7,7 +7,7 @@ register_capability(:groups, version: APP_VERSION)
 
 # GET the groups known to the application
 get '/groups' do
-  begin
+  api_action do
     if api_authenticated? && @current_user.admin?
       status 200
       body(
@@ -22,14 +22,12 @@ get '/groups' do
     else
       halt(403) # Forbidden
     end
-  rescue => e
-    halt(422, { :error => e.message }.to_json)
   end
 end
 
 # GET a Group search
 get '/groups/search' do
-  begin
+  api_action do
     if api_authenticated? && @current_user.admin?
       status 200
     	body(
@@ -46,14 +44,12 @@ get '/groups/search' do
     else
       halt(403) # Forbidden
     end
-  rescue => e
-    halt(422, { :error => e.message }.to_json)
   end
 end
 
 # GET the details on a user
 get '/groups/:group' do
-  begin
+  api_action do
     if api_authenticated? && @current_user.admin?
       status 200
     	body(
@@ -64,14 +60,12 @@ get '/groups/:group' do
     else
       halt(403) # Forbidden
     end
-  rescue => e
-    halt(422, { :error => e.message }.to_json)
   end
 end
 
 # GET the members of a group
 get '/groups/:group/members' do
-  begin
+  api_action do
     if api_authenticated? && @current_user.admin?
       status 200
     	body(
@@ -88,7 +82,5 @@ get '/groups/:group/members' do
     else
       halt(403) # Forbidden
     end
-  rescue => e
-    halt(422, { :error => e.message }.to_json)
   end
 end

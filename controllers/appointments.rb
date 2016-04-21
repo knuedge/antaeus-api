@@ -8,7 +8,7 @@ register_capability(:appointments, version: APP_VERSION)
 # GET the all appointments
 #  *Not lazy*
 get '/appointments' do
-  begin
+  api_action do
     if api_authenticated?
       status 200
     	body(
@@ -19,15 +19,13 @@ get '/appointments' do
     else
       halt(403) # Forbidden
     end
-  rescue => e
-    halt(422, { :error => e.message }.to_json)
   end
 end
 
 # GET the upcoming appointments
 #  *Not lazy*
 get '/appointments/upcoming' do
-  begin
+  api_action do
     if api_authenticated?
       status 200
     	body(
@@ -38,14 +36,12 @@ get '/appointments/upcoming' do
     else
       halt(403) # Forbidden
     end
-  rescue => e
-    halt(422, { :error => e.message }.to_json)
   end
 end
 
 # GET an Appointments search
 get '/appointments/search' do
-  begin
+  api_action do
     if api_authenticated?
       fail Exceptions::MissingQuery unless params['q']
       status 200
@@ -58,8 +54,6 @@ get '/appointments/search' do
     else
       halt(403) # Forbidden
     end
-  rescue => e
-    halt(422, { :error => e.message }.to_json)
   end
 end
 
@@ -81,7 +75,7 @@ end
 #    "comment": "A contractor with Acme Inc."
 #  }
 post '/appointments' do
-	begin
+	api_action do
     if api_authenticated?
       unless @data.key?('contact') && @data.key?('guest_id') && @data.key?('arrival') && @data.key?('departure')
         fail Exceptions::MissingProperty
@@ -108,8 +102,6 @@ post '/appointments' do
     else
       halt(403) # Forbidden
     end
-	rescue => e
-		halt(422, { :error => e.message }.to_json)
 	end
 end
 
@@ -117,7 +109,7 @@ end
 #
 # All keys are optional, but the id can not be changed
 put '/appointments/:id' do
-  begin
+  api_action do
     if api_authenticated?
       if @data.key?('id') && @data['id'].to_s != params['id'].to_s
         fail Exceptions::ForbiddenChange
@@ -140,14 +132,12 @@ put '/appointments/:id' do
     else
       halt(403) # Forbidden
     end
-  rescue => e
-    halt(422, { :error => e.message }.to_json)
   end
 end
 
 # DELETE an appointment
 delete '/appointments/:id' do |id|
-  begin
+  api_action do
     if api_authenticated?
       # TODO notify the owner of an appointment
       app = Appointment.get(id)
@@ -156,14 +146,12 @@ delete '/appointments/:id' do |id|
     else
       halt(403) # Forbidden
     end
-  rescue => e
-    halt(422, { :error => e.message }.to_json)
   end
 end
 
 # GET the info about an appointment
 get '/appointments/:id' do |id|
-  begin
+  api_action do
     if api_authenticated?
       app = Appointment.get(id)
       if app
@@ -175,8 +163,6 @@ get '/appointments/:id' do |id|
     else
       halt(403) # Forbidden
     end
-  rescue => e
-    halt(422, { :error => e.message }.to_json)
   end
 end
 
@@ -188,7 +174,7 @@ end
 #   "approve": true
 #  }
 patch '/appointments/:id/approve' do |id|
-  begin
+  api_action do
     fail Exceptions::MissingProperty unless @data.key?('approve')
     app = Appointment.get(id)
     if api_authenticated? and @current_user.admin?
@@ -201,8 +187,6 @@ patch '/appointments/:id/approve' do |id|
       halt(403) # Forbidden
     end
     halt(204)
-  rescue => e
-    halt(422, { :error => e.message }.to_json)
   end
 end
 
@@ -214,7 +198,7 @@ end
 #   "email": "jgnagy@example.com"
 #  }
 patch '/appointments/:id/checkin' do |id|
-  begin
+  api_action do
     app = Appointment.get(id)
     if api_authenticated?(false) || (guest_authenticated? && app.guest == @current_guest)
       if @current_guest
@@ -226,7 +210,5 @@ patch '/appointments/:id/checkin' do |id|
       halt(403) # Forbidden
     end
     halt(204)
-  rescue => e
-    halt(422, { :error => e.message }.to_json)
   end
 end

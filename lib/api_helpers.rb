@@ -112,6 +112,18 @@ def api_url(*objects)
   end
 end
 
+# Generic way to do stuff in *all* controller actions
+def api_action(options = {}, &block)
+  options[:error_code] ||= 422
+  options[:metric_key] ||= "#{request.request_method}.#{request.path_info}"
+  begin
+    # do something with request.path_info for monitoring
+    block.call
+  rescue => e
+    halt(options[:error_code], { :error => e.message }.to_json)
+  end
+end  
+
 # Add a capability to the Capabilities hash
 def register_capability(capability_heading, data)
   Capabilities.instance[capability_heading] = data

@@ -8,19 +8,17 @@ register_capability(:remote_applications, version: APP_VERSION)
 
 # GET all remote applications
 get '/remote_applications' do
-  begin
+  api_action do
     if api_authenticated?
       status 200
       body(RemoteApplication.all.serialize(:only => [:id, :app_name, :url, :created_at]))
     end
-  rescue => e
-    halt(422, { :error => e.message }.to_json)
   end
 end
 
 # GET an Remote Application search
 get '/remote_applications/search' do
-  begin
+  api_action do
     if api_authenticated? and @current_user.admin?
       fail Exceptions::MissingQuery unless params['q']
       status 200
@@ -33,8 +31,6 @@ get '/remote_applications/search' do
     else
       halt(403) # Forbidden
     end
-  rescue => e
-    halt(422, { :error => e.message }.to_json)
   end
 end
 
@@ -50,7 +46,7 @@ end
 #    "url": "https://antaeus.myawesomesite.com/"
 #  }
 post '/remote_applications' do
-	begin
+	api_action do
     if api_authenticated? and @current_user.admin?
       fail Exceptions::MissingProperty unless @data.has_key?('app_name') and @data.has_key?('ident')
       if !RemoteApplication.first(:name => @data['name'])
@@ -71,8 +67,6 @@ post '/remote_applications' do
     else
       halt(403) # Forbidden
     end
-	rescue => e
-		halt(422, { :error => e.message }.to_json)
 	end
 end
 
@@ -80,7 +74,7 @@ end
 #
 # All keys are optional, but the id can not be changed
 put '/remote_applications/:id' do
-  begin
+  api_action do
     if api_authenticated? and @current_user.admin?
       if @data.key?('id') && @data['id'].to_s != params['id'].to_s
         fail Exceptions::ForbiddenChange
@@ -106,14 +100,12 @@ put '/remote_applications/:id' do
     else
       halt(403) # Forbidden
     end
-  rescue => e
-    halt(422, { :error => e.message }.to_json)
   end
 end
 
 # DELETE a remote application registration
 delete '/remote_applications/:id' do |id|
-  begin
+  api_action do
     if api_authenticated? and @current_user.admin?
       app = RemoteApplication.get(id)
       fail Exceptions::ForbiddenChange if app == @via_application
@@ -122,14 +114,12 @@ delete '/remote_applications/:id' do |id|
     else
       halt(403) # Forbidden
     end
-  rescue => e
-    halt(422, { :error => e.message }.to_json)
   end
 end
 
 # GET the info about a remote application
 get '/remote_applications/:id' do |id|
-  begin
+  api_action do
     if api_authenticated? and @current_user.admin?
       app = RemoteApplication.get(id)
       if app
@@ -141,7 +131,5 @@ get '/remote_applications/:id' do |id|
     else
       halt(403) # Forbidden
     end
-  rescue => e
-    halt(422, { :error => e.message }.to_json)
   end
 end
