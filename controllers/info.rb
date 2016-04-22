@@ -22,3 +22,10 @@ get '/info/capabilities' do
     body({api: {capabilities: Capabilities.instance.to_hash}}.to_json)
   end
 end
+
+# Might want to add auth to this eventually...
+get '/info/metrics' do
+  api_action do
+    body({api: {metrics: Metrics.to_hash}}.to_json)
+  end
+end

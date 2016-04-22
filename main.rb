@@ -2,6 +2,7 @@ require "rubygems"
 require "bundler/setup"
 
 require 'sinatra'
+require 'concurrent'
 require 'yaml'
 require 'json'
 require 'singleton'
@@ -127,6 +128,10 @@ use Rack::CommonLogger, file
 # Library updates
 puts '>> Loading internal libraries'
 require_all Dir.glob('lib/*.rb') + Dir.glob('exceptions/*.rb')
+
+# Prepare our Metrics storage
+Metrics.prepare
+Metrics.register(:counts)
 
 puts '>> Connecting to authentication backend (LDAP)'
 LDAP.connect!

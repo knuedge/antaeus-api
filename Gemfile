@@ -3,6 +3,7 @@ gem "json"
 gem "rack"
 gem "rack-test"
 gem "sinatra"
+gem 'concurrent-ruby', require: 'concurrent'
 gem "data_mapper"
 gem "dm-mysql-adapter"
 gem "linguistics"

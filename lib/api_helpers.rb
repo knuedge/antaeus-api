@@ -116,10 +116,15 @@ end
 def api_action(options = {}, &block)
   options[:error_code] ||= 422
   options[:metric_key] ||= "#{request.request_method}.#{request.path_info}"
+
+  if Metrics.registered?(:counts)
+    Metrics.update(:counts, options[:metric_key]) {|c| c + 1 }
+  end
+
   begin
-    # do something with request.path_info for monitoring
     block.call
   rescue => e
+    # Debugging puts e
     halt(options[:error_code], { :error => e.message }.to_json)
   end
 end  

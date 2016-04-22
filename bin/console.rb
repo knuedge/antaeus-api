@@ -5,6 +5,7 @@
 require "rubygems"
 require "bundler/setup"
 
+require 'concurrent'
 require 'yaml'
 require 'json'
 require 'singleton'
@@ -51,6 +52,10 @@ DataMapper.setup(:default, CONFIG[:db])
 # Library updates
 puts '>> Loading internal libraries'
 require_all Dir.glob('lib/*.rb') + Dir.glob('exceptions/*.rb')
+
+# Prepare our Metrics storage
+Metrics.prepare
+Metrics.register(:counts)
 
 puts '>> Connecting to authentication backend (LDAP)'
 LDAP.connect!
