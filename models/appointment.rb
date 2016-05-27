@@ -30,7 +30,12 @@ class Appointment
   validates_within :location, :set => [ 'SAN', 'SFO', 'AUS' ]
 
   after :save do |appt|
-    cache_expire('upcoming_appts_json') # need to expire the cache on save
+    cache_expire('upcoming_appointment_json') # need to expire the cache on save
+    cache_expire('all_appointment_json')
+  end
+
+  after :destroy do |appt|
+    cache_expire('upcoming_appointment_json') # need to expire the cache on destroy
     cache_expire('all_appointment_json')
   end
 
@@ -55,7 +60,7 @@ class Appointment
     else
       approval.destroy if approved?
     end
-    cache_expire('upcoming_appts_json')
+    cache_expire('upcoming_appointment_json')
     cache_expire('all_appointment_json')
   end
 
@@ -66,7 +71,7 @@ class Appointment
     else
       GuestCheckin.new(appointment: self, guest: self.guest).save
     end
-    cache_expire('upcoming_appts_json')
+    cache_expire('upcoming_appointment_json')
     cache_expire('all_appointment_json')
   end
 

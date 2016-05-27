@@ -73,12 +73,15 @@ else
       :mailattr   => 'mail',
       :snattr     => 'sn',
       :gnattr     => 'givenName',
-      :admin_group => 'sgAntaeusAdmins',
-      :caching    => {
-        :enabled  => false,
-        :host     => 'redis.example.com',
-        :port     => 6379,
-        :passphrase => 'letmein'
+      :admin_group => 'sgAntaeusAdmins'
+    },
+    :caching    => {
+      :enabled  => false,
+      :host     => 'redis.example.com',
+      :port     => 6379,
+      :passphrase => 'letmein',
+      :expirations => {
+        :ldap => 900
       }
     },
     :debug => false

@@ -31,6 +31,10 @@ class Guest
     cache_expire('all_guests_json') # need to expire the cache on save
   end
 
+  after :destroy do |guest|
+    cache_expire('all_guests_json') # need to expire the cache on destroy
+  end
+
   # Authenticate a Guest from their crafted API token
   # Guest tokens take the lazy way out, since guests are already very limited
   def self.from_token(token)
