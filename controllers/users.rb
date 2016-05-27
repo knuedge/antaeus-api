@@ -100,7 +100,7 @@ get '/users/:name/memberships' do
   api_action do
     if api_authenticated?
       status 200
-    	body(User.from_login(params['name']).groups.serialize(only: :id))
+    	body(User.from_login(params['name']).groups.serialize(only: :id, root: :groups))
     end
   end
 end

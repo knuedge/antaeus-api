@@ -1,16 +1,15 @@
 # Poor-man's implementation of ActiveRecord::Serializer
 module Serializable
   def serialize(options = {})
+    root = options.has_key?(:root) ? options[:root] : nil
+
     if is_a?(DataMapper::Collection) || is_a?(LDAP::Collection)
-      root = model.name.en.plural.to_underscore
+      root ||= model.name.en.plural.to_underscore
     elsif is_a?(Array)
-      fail Exceptions::EmptyArrayRoot if empty?
-      root = first.class.name.en.plural.to_underscore
+      fail Exceptions::EmptyArrayRoot if empty? && !root
+      root ||= first.class.name.en.plural.to_underscore
     else
-      root = self.class.name.to_underscore
-    end
-    if options.has_key?(:root)
-      root = options[:root]
+      root ||= self.class.name.to_underscore
     end
 
     options[:format] ||= :json
