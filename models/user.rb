@@ -33,7 +33,7 @@ class User < LDAP::Model
     Group.with_member(self)
   end
 
-  def name
+  def display_name
     send(CONFIG[:ldap][:displayname].downcase.to_sym)
   end
 

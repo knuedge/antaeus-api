@@ -54,7 +54,7 @@ get '/groups/:group' do
       status 200
     	body(
         Group.from_attr(params['group']).serialize(
-          exclude: [ CONFIG[:ldap][:memberattr].to_sym ]
+          exclude: [ CONFIG[:ldap][:memberattr].downcase.to_sym ]
         )
       )
     else
@@ -75,7 +75,7 @@ get '/groups/:group/members' do
           end
         else
           cache_fetch("full_group_#{params['group']}_members_json", expires: 120) do
-            Group.from_attr(params['group']).members.serialize(include: :name)
+            Group.from_attr(params['group']).members.serialize(include: :display_name)
           end
         end
       )

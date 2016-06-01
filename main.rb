@@ -172,7 +172,7 @@ unless CACHE_STATUS == :disabled
   # LDAP caching
   Thread.new do
     loop do
-      ldap_prefetch(User, [:name])
+      ldap_prefetch(User, [:display_name])
       ldap_prefetch(Group)
       sleep 120
     end
