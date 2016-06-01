@@ -1,7 +1,13 @@
 # The groups Controller
 
 api_parse_for(:groups)
-register_capability(:groups, version: APP_VERSION)
+register_capability(
+  :groups,
+  version: APP_VERSION,
+  attributes: {
+    name: CONFIG[:ldap][:groupattr]
+  }
+)
 
 # @!group Public Routes
 

@@ -1,7 +1,7 @@
 # The appointments Controller
 
 api_parse_for(:appointments)
-register_capability(:appointments, version: APP_VERSION)
+register_capability(:appointments, version: APP_VERSION, locations: CONFIG[:locations])
 
 # @!group Guests Private Routes
 

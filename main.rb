@@ -22,7 +22,7 @@ require 'moneta'
 ### Custom code
 
 # The version of this application
-APP_VERSION = '0.0.2'
+APP_VERSION = '0.0.3'
 APP_VERSION.freeze
 
 puts ">> Starting up..."
@@ -84,6 +84,11 @@ else
         :ldap => 900
       }
     },
+    :locations => [
+      'SAN',
+      'AUS',
+      'RWC'
+    ],
     :debug => false
   }
 
@@ -169,25 +174,51 @@ end
 
 # Background workers for caching
 unless CACHE_STATUS == :disabled
-  # LDAP caching
+  puts '>> Warming Cache...'
+  prewarm_thread1 = Thread.new do
+    ldap_prefetch(User, [:display_name])
+    ldap_prefetch(Group)
+  end
+
+  prewarm_thread2 = Thread.new do
+    cache_fetch('all_appointment_json', expires: 300) do
+      Appointment.all.serialize(include: [:arrived?, :approved?])
+    end
+    cache_fetch('upcoming_appointment_json', expires: 300) do
+      Appointment.upcoming.serialize(include: [:arrived?, :approved?])
+    end
+    cache_fetch('all_guests_json', expires: 120) do
+      Guest.all.serialize(exclude: :pin)
+    end
+  end
+  
+  prewarm_thread1.join
+  prewarm_thread2.join
+
+  # LDAP caching background thread
   Thread.new do
     loop do
+      sleep 60
       ldap_prefetch(User, [:display_name])
       ldap_prefetch(Group)
-      sleep 120
+      sleep 60
     end
   end
 
-  # MySQL Data caching
+  # MySQL Data caching background thread
   Thread.new do
     loop do
-      cache_fetch("upcoming_appointment_json", expires: 300) do
-        Appointment.upcoming.serialize
+      sleep 60
+      cache_fetch('all_appointment_json', expires: 300) do
+        Appointment.all.serialize(include: [:arrived?, :approved?])
+      end
+      cache_fetch('upcoming_appointment_json', expires: 300) do
+        Appointment.upcoming.serialize(include: [:arrived?, :approved?])
       end
       cache_fetch('all_guests_json', expires: 120) do
         Guest.all.serialize(exclude: :pin)
       end
-      sleep 120
+      sleep 60
     end
   end
 end
@@ -195,3 +226,6 @@ end
 # Controllers
 puts '>> Loading API controllers'
 require_all 'controllers/*.rb'
+
+# Say we're ready!
+puts '>> Ready for traffic!'

@@ -16,8 +16,8 @@ class Appointment
                                     default: lambda {|r,p| r.arrival }
 
   property :departure,  Date, required: true, index: :departure
-  # location (SAN, SFO, or AUS) for the guest's visit
-  property :location,   String,  required: true, default: 'SAN', index: :location
+  # location for the guest's visit
+  property :location,   String,  required: true, default: CONFIG[:locations].first, index: :location
   property :comment,    Text
 
   property :created_at, DateTime, index: true
@@ -27,7 +27,7 @@ class Appointment
   has 1, :guest_checkin
   has 1, :approval
 
-  validates_within :location, :set => [ 'SAN', 'SFO', 'AUS' ]
+  validates_within :location, :set => CONFIG[:locations]
 
   after :save do |appt|
     cache_expire('upcoming_appointment_json') # need to expire the cache on save

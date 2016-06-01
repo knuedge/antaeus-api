@@ -1,9 +1,14 @@
 # The users Controller
 
-## Filters
-
 api_parse_for(:users)
-register_capability(:users, version: APP_VERSION)
+register_capability(
+  :users,
+  version: APP_VERSION,
+  attributes: {
+    name: CONFIG[:ldap][:userattr],
+    mail: CONFIG[:ldap][:mailattr]
+  }
+)
 
 # @!group User Public Actions (no api key required)
 
