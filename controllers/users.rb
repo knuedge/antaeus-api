@@ -56,7 +56,7 @@ get '/users' do
           end
         else
           cache_fetch('full_all_user_json', expires: 900) do
-            User.all.serialize
+            User.all.serialize(include: :name)
           end
         end
       )
@@ -77,7 +77,7 @@ get '/users/search' do
           end
         else
           cache_fetch("full_search_user_#{params['q']}_json", expires: 300) do
-            User.search(params['q']).serialize
+            User.search(params['q']).serialize(include: :name)
           end
         end
       )
@@ -90,7 +90,7 @@ get '/users/:name' do
   api_action do
     if api_authenticated?
       status 200
-    	body(User.from_login(params['name']).serialize)
+    	body(User.from_login(params['name']).serialize(include: :name))
     end
   end
 end

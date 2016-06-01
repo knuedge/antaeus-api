@@ -66,7 +66,7 @@ def cache_expire(key, options = {})
 end
 
 # Helper for backgroud cache prefetching
-def ldap_prefetch(ldap_class)
+def ldap_prefetch(ldap_class, additional_attrs = [])
   ldap_cache_expiration = begin
                             CONFIG[:caching][:expirations][:ldap]
                           rescue
@@ -79,7 +79,7 @@ def ldap_prefetch(ldap_class)
     ldap_class.all.serialize(only: :id)
   end
   cache_fetch("full_all_#{ldap_class.name.to_s.downcase}_json", expires: ldap_cache_expiration) do
-    ldap_class.all.serialize
+    ldap_class.all.serialize(include: additional_attrs)
   end
   end_time = Time.now
   time_taken = end_time - start_time

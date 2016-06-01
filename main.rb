@@ -71,7 +71,7 @@ else
       :userattr   => 'uid',
       :loginattr  => 'uid',
       :mailattr   => 'mail',
-      :snattr     => 'sn',
+      :displayname => 'displayName',
       :gnattr     => 'givenName',
       :admin_group => 'sgAntaeusAdmins'
     },
@@ -172,7 +172,8 @@ unless CACHE_STATUS == :disabled
   # LDAP caching
   Thread.new do
     loop do
-      [User, Group].each {|lc| ldap_prefetch(lc) }
+      ldap_prefetch(User, [:name])
+      ldap_prefetch(Group)
       sleep 120
     end
   end

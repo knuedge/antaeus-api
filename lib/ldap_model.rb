@@ -17,7 +17,7 @@ module LDAP
       @single_value_attributes ||= []
       @multi_value_attributes ||= []
 
-      attribute = name.to_sym
+      attribute = name.downcase.to_sym
       if options.key?(:pre) && options[:pre].is_a?(Proc)
         attribute = [name.to_sym, options[:pre]]
       end

@@ -75,7 +75,7 @@ get '/groups/:group/members' do
           end
         else
           cache_fetch("full_group_#{params['group']}_members_json", expires: 120) do
-            Group.from_attr(params['group']).members.serialize
+            Group.from_attr(params['group']).members.serialize(include: :name)
           end
         end
       )
