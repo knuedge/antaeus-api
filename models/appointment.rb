@@ -43,6 +43,11 @@ class Appointment
     fail Exceptions::ForbiddenChange if appt.has_checkin?
   end
 
+  # Ensure times are in UTC before they're saved
+  def arrival=(time)
+    super(Time.parse(time).utc)
+  end
+
   def approved?
     approval ? true : false
   end
