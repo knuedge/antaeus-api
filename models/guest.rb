@@ -8,7 +8,7 @@ class Guest
                                   format: :email_address
   property :full_name,  String,   required: true, index: true
   property :phone,      String
-  property :citizenship, String,  required: true, default: 'USA'
+  property :citizenship, String,  required: true, default: 'US', length: 2, index: true
   # Does the guest need an NDA?
   property :need_nda,   Boolean,  required: true, default: false
   property :signed_nda, Boolean,  required: true, default: false

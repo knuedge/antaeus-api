@@ -1,7 +1,7 @@
 # The appointments Controller
 
 api_parse_for(:appointments)
-register_capability(:appointments, version: APP_VERSION, locations: CONFIG[:locations])
+register_capability(:appointments, version: APP_VERSION)
 
 # @!group Guests Private Routes
 
@@ -80,7 +80,7 @@ post '/appointments' do
       unless @data.key?('contact') && @data.key?('guest_id') && @data.key?('arrival') && @data.key?('departure')
         fail Exceptions::MissingProperty
       end
-
+      puts @data.to_json
       appt = Appointment.new(
         contact: @data['contact'],
         guest_id: @data['guest_id'],
@@ -89,7 +89,13 @@ post '/appointments' do
       )
 
       # Important values
-      appt.location = @data['location'] if @data.key?('location')
+      if @data.key?('location')
+        appt.location = Location.first_or_create(shortname: @data['location'].to_s.upcase)
+      elsif @data.key?('location_id')
+        appt.location = Location.get(@data['location_id'])
+      else
+        fail Exceptions::MissingProperty
+      end
 
       # Optional values
       appt.comment = @data['comment'] if @data.key?('comment')

@@ -68,7 +68,7 @@ get '/guests/search' do
     	body(
         cache_fetch("search_guests_#{params['q']}_json", expires: 60) do
           guests = Guest.all(:name.like => "%#{params['q']}") | Guest.all(:email.like => "%#{params['q']}")
-          guests.serialize(only: [:email, :name])
+          guests.serialize(only: [:id, :email, :name])
         end
       )
     else
@@ -241,7 +241,13 @@ post '/guests/:id/appointments' do
         )
         # Important values
         appt.arrival = @data['arrival'] # use the helper to break apart date and time
-        appt.location = @data['location'] if @data.key?('location')
+        if @data.key?('location')
+          appt.location = Location.first_or_create(shortname: @data['location'].to_s.upcase)
+        elsif @data.key?('location_id')
+          appt.location = Location.get(@data['location_id'])
+        else
+          fail Exceptions::MissingProperty
+        end
 
         # Optional values
         appt.comment = @data['comment'] if @data.key?('comment')

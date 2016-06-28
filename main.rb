@@ -22,7 +22,7 @@ require 'moneta'
 ### Custom code
 
 # The version of this application
-APP_VERSION = '0.0.3'
+APP_VERSION = '0.0.4'
 APP_VERSION.freeze
 
 puts ">> Starting up..."
@@ -84,11 +84,6 @@ else
         :ldap => 900
       }
     },
-    :locations => [
-      'SAN',
-      'AUS',
-      'RWC'
-    ],
     :debug => false
   }
 
@@ -190,6 +185,9 @@ unless CACHE_STATUS == :disabled
     cache_fetch('all_guests_json', expires: 120) do
       Guest.all.serialize(exclude: :pin)
     end
+    cache_fetch('all_locations_json', expires: 120) do
+      Location.all.serialize(only: [:id, :shortname, :city, :state, :country])
+    end
   end
   
   prewarm_thread1.join
@@ -217,6 +215,9 @@ unless CACHE_STATUS == :disabled
       end
       cache_fetch('all_guests_json', expires: 120) do
         Guest.all.serialize(exclude: :pin)
+      end
+      cache_fetch('all_locations_json', expires: 120) do
+        Location.all.serialize(only: [:id, :shortname, :city, :state, :country])
       end
       sleep 60
     end
