@@ -19,6 +19,9 @@ class Appointment
 
   property :comment,    Text
 
+  # The user that created the appointment
+  property :created_by, String, required: true, index: true
+
   property :created_at, DateTime, index: true
   property :updated_at, DateTime
 

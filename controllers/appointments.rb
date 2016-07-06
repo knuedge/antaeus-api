@@ -39,6 +39,23 @@ get '/appointments/upcoming' do
   end
 end
 
+# GET the appointments *made by* the current user
+#  *Not lazy*
+get '/appointments/mine' do
+  api_action do
+    if api_authenticated?
+      status 200
+    	body(
+        cache_fetch("#{@current_user}_appointments_json", expires: 300) do
+          @current_user.created_appointments.serialize(include: [:arrived?, :approved?])
+        end
+      )
+    else
+      halt(403) # Forbidden
+    end
+  end
+end
+
 # GET an Appointments search
 get '/appointments/search' do
   api_action do
@@ -85,7 +102,8 @@ post '/appointments' do
         contact: @data['contact'],
         guest_id: @data['guest_id'],
         arrival: @data['arrival'],
-        departure: @data['departure']
+        departure: @data['departure'],
+        created_by: @current_user.to_s
       )
 
       # Important values

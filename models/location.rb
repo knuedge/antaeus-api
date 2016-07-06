@@ -32,11 +32,15 @@ class Location
 
   has n, :appointments
 
-  after :save do |appt|
+  after :save do |loc|
     cache_expire('all_locations_json') # need to expire the cache on save
   end
 
-  after :destroy do |appt|
+  before :destroy do |loc|
+    appointments.destroy
+  end
+
+  after :destroy do |loc|
     cache_expire('all_locations_json') # need to expire the cache on destroy
   end
 

@@ -43,7 +43,13 @@ class User < LDAP::Model
     Group.from_dn(query).members.include?(self)
   end
 
+  # Appointments where the current user is the contact
   def appointments
     Appointment.all(contact: to_s)
+  end
+
+  # Appointments created_by the current user
+  def created_appointments
+    Appointment.all(created_by: to_s)
   end
 end

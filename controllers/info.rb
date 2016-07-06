@@ -29,3 +29,19 @@ get '/info/metrics' do
     body({api: {metrics: Metrics.to_hash}}.to_json)
   end
 end
+
+# GET details about the currently logged-in user
+get '/info/me' do
+  api_action do
+    if api_authenticated?
+      body({
+        current_user: {
+          login: @current_user.to_s,
+          admin: @current_user.admin?
+        }
+      }.to_json)
+    else
+      body({current_user: nil}.to_json)
+    end
+  end
+end
