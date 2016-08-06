@@ -51,10 +51,14 @@ module LDAP
         val, block = Array(attribute)
         define_method(val) do
           if @entity.attribute_names.include?(val)
-            if block.is_a?(Proc)
-              return block[@entity.send(val).to_s]
-            else
-              return @entity.send(val).first.to_s
+            begin
+              if block.is_a?(Proc)
+                return block[@entity.send(val).to_s] || nil
+              else
+                return @entity.send(val).first.to_s || nil
+              end
+            rescue NoMethodError => e
+              nil
             end
           else
             return nil
@@ -68,10 +72,14 @@ module LDAP
         val, block = Array(attribute)
         define_method(val) do
           if @entity.attribute_names.include?(val)
-            if block.is_a?(Proc)
-              return @entity.send(val).collect(&block)
-            else
-              return @entity.send(val)
+            begin
+              if block.is_a?(Proc)
+                return @entity.send(val).collect(&block) || []
+              else
+                return @entity.send(val) || []
+              end
+            rescue NoMethodError => e
+              []
             end
           else
             return []
@@ -185,10 +193,18 @@ module LDAP
     def attributes
       data = {id: id}
       [:dn, *self.class.single_value_attributes].uniq.each do |attribute|
-        data[attribute.to_sym] = [*@entity.send(attribute.to_sym)].first
+        data[attribute.to_sym] = begin
+          [*@entity.send(attribute.to_sym)].first
+        rescue NoMethodError => e
+          nil
+        end
       end
       self.class.multi_value_attributes.each do |attribute|
-        data[attribute.to_sym] = @entity.send(attribute.to_sym)
+        data[attribute.to_sym] = begin
+          @entity.send(attribute.to_sym)
+        rescue NoMethodError => e
+          []
+        end
       end
       data
     end

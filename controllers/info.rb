@@ -19,7 +19,26 @@ end
 # TODO: define more capabilities throughout and report on them here
 get '/info/capabilities' do
   api_action do
-    body({api: {capabilities: Capabilities.instance.to_hash}}.to_json)
+    body(
+      {
+        api: {
+          capabilities: Capabilities.instance.to_hash,
+        }
+      }.to_json
+    )
+  end
+end
+
+# All the plugins installed on the system, plus their config properties
+get '/info/plugins' do
+  api_action do
+    body(
+      {
+        api: {
+          plugins: Plugins.instance.to_hash
+        }
+      }.to_json
+    )
   end
 end
 

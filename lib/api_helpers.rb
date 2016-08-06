@@ -133,3 +133,8 @@ end
 def register_capability(capability_heading, data)
   Capabilities.instance[capability_heading] = data
 end
+
+# Add a plugin to the Plugins hash
+def register_plugin(name, class_name, data)
+  Plugins.instance[name] = { provider: class_name, details: data }
+end

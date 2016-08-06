@@ -22,7 +22,7 @@ require 'moneta'
 ### Custom code
 
 # The version of this application
-APP_VERSION = '0.0.4'
+APP_VERSION = '0.0.5'
 APP_VERSION.freeze
 
 puts ">> Starting up..."
@@ -49,11 +49,7 @@ else
     :mail => {
       :from  => 'noreply@example.com',
       :relay => 'mail.example.com',
-      :port  => 25,
-      :gpg   => {
-        :sign => false,
-        :passphrase => 'CHANGE-THIS-IF-GPG!'
-      }
+      :port  => 25
     },
     :ldap => {
       :host       => 'ldap.example.com',
@@ -136,6 +132,11 @@ require_all Dir.glob('lib/*.rb') + Dir.glob('exceptions/*.rb')
 Metrics.prepare
 Metrics.register(:counts)
 
+# Plugins
+puts '>> Loading plugins'
+require_all Dir.glob('lib/plugins/*.rb')
+
+# LDAP
 puts '>> Connecting to authentication backend (LDAP)'
 LDAP.connect!
 
