@@ -1,47 +1,35 @@
 module PooledIterator
   def self.each(iterable, pool_size, &block)
-    q = Queue.new
-    m = Mutex.new
-    threads = []
+    pool = Concurrent::ThreadPoolExecutor.new(
+      min_threads: 0,
+      max_threads: pool_size
+    )
 
     iterable.each do |i|
-      q << Proc.new { block.call(i) }
+      pool.post { block.call(i) }
     end
 
-    pool_size.times do
-      threads << Thread.new do
-        until q.empty?
-          q.pop.call
-        end
-      end
-    end
-    threads.each {|t| t.join }
+    pool.shutdown
+    pool.wait_for_termination
 
     iterable
   end
 
   def self.collect(iterable, pool_size, collection_class = Array, &block)
-    q = Queue.new
-    m = Mutex.new
-    threads = []
-    data = collection_class.new
+    pool = Concurrent::ThreadPoolExecutor.new(
+      min_threads: 0,
+      max_threads: pool_size
+    )
+    data = Concurrent::Array.new
 
     iterable.each do |i|
-      q << Proc.new { block.call(i) }
+      pool.post { data << block.call(i) }
     end
 
-    pool_size.times do
-      threads << Thread.new do
-        until q.empty?
-          result = q.pop.call
-          m.synchronize do
-            data << result
-          end
-        end
-      end
-    end
-    threads.each {|t| t.join }
+    pool.shutdown
+    pool.wait_for_termination
 
-    data
+    # Collection Class must implement #replace()
+    collection_class.new.replace(data)
   end
 end

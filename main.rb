@@ -171,28 +171,22 @@ end
 # Background workers for caching
 unless CACHE_STATUS == :disabled
   puts '>> Warming Cache...'
-  prewarm_thread1 = Thread.new do
-    ldap_prefetch(User, [:display_name])
-    ldap_prefetch(Group)
-  end
 
-  prewarm_thread2 = Thread.new do
-    cache_fetch('all_appointment_json', expires: 300) do
-      Appointment.all.serialize(include: [:arrived?, :approved?])
-    end
-    cache_fetch('upcoming_appointment_json', expires: 300) do
-      Appointment.upcoming.serialize(include: [:arrived?, :approved?])
-    end
-    cache_fetch('all_guests_json', expires: 120) do
-      Guest.all.serialize(exclude: :pin)
-    end
-    cache_fetch('all_locations_json', expires: 120) do
-      Location.all.serialize(only: [:id, :shortname, :city, :state, :country])
-    end
+  ldap_prefetch(User, [:display_name])
+  ldap_prefetch(Group)
+
+  cache_fetch('all_appointment_json', expires: 300) do
+    Appointment.all.serialize(include: [:arrived?, :approved?])
   end
-  
-  prewarm_thread1.join
-  prewarm_thread2.join
+  cache_fetch('upcoming_appointment_json', expires: 300) do
+    Appointment.upcoming.serialize(include: [:arrived?, :approved?])
+  end
+  cache_fetch('all_guests_json', expires: 120) do
+    Guest.all.serialize(exclude: :pin)
+  end
+  cache_fetch('all_locations_json', expires: 120) do
+    Location.all.serialize(only: [:id, :shortname, :city, :state, :country])
+  end
 
   # LDAP caching background thread
   Thread.new do

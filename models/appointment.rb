@@ -28,6 +28,7 @@ class Appointment
   belongs_to :guest
   belongs_to :location
   has 1, :guest_checkin
+  has 1, :guest_checkout
   has 1, :approval
 
   after :save do |appt|
@@ -57,10 +58,16 @@ class Appointment
     guest_checkin ? true : false
   end
 
+  def has_checkout?
+    guest_checkout ? true : false
+  end
+
   alias_method :arrived?, :has_checkin?
+  alias_method :departed?, :has_checkout?
 
   def change_approval(status, user)
     fail Exceptions::ForbiddenChange if has_checkin?
+    fail Exceptions::ForbiddenChange if has_checkout?
     if status
       Approval.new(appointment: self, dn: user.dn).save unless approved?
     else
@@ -72,11 +79,39 @@ class Appointment
 
   def checkin(guest_user = nil)
     fail Exceptions::ForbiddenChange unless approved?
+    fail Exceptions::ForbiddenChange if has_checkout?
     if guest_user
       GuestCheckin.new(appointment: self, guest: guest_user).save
     else
       GuestCheckin.new(appointment: self, guest: self.guest).save
     end
+    cache_expire('upcoming_appointment_json')
+    cache_expire('all_appointment_json')
+  end
+
+  def undo_checkin
+    fail Exceptions::ForbiddenChange unless has_checkin?
+    fail Exceptions::ForbiddenChange if has_checkout?
+    guest_checkin.destroy
+    cache_expire('upcoming_appointment_json')
+    cache_expire('all_appointment_json')
+  end
+
+  def checkout(guest_user = nil)
+    fail Exceptions::ForbiddenChange unless approved?
+    fail Exceptions::ForbiddenChange unless has_checkin?
+    if guest_user
+      GuestCheckout.new(appointment: self, guest: guest_user).save
+    else
+      GuestCheckout.new(appointment: self, guest: self.guest).save
+    end
+    cache_expire('upcoming_appointment_json')
+    cache_expire('all_appointment_json')
+  end
+
+  def undo_checkout
+    fail Exceptions::ForbiddenChange unless has_checkout?
+    guest_checkout.destroy
     cache_expire('upcoming_appointment_json')
     cache_expire('all_appointment_json')
   end

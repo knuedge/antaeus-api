@@ -13,7 +13,7 @@ get '/appointments' do
       status 200
     	body(
         cache_fetch('all_appointment_json', expires: 300) do
-          Appointment.all.serialize(include: [:arrived?, :approved?])
+          Appointment.all.serialize(include: [:arrived?, :approved?, :departed?])
         end
       )
     else
@@ -30,7 +30,7 @@ get '/appointments/upcoming' do
       status 200
     	body(
         cache_fetch('upcoming_appointment_json', expires: 300) do
-          Appointment.upcoming.serialize(include: [:arrived?, :approved?])
+          Appointment.upcoming.serialize(include: [:arrived?, :approved?, :departed?])
         end
       )
     else
@@ -47,7 +47,7 @@ get '/appointments/mine' do
       status 200
     	body(
         cache_fetch("#{@current_user}_appointments_json", expires: 300) do
-          @current_user.created_appointments.serialize(include: [:arrived?, :approved?])
+          @current_user.created_appointments.serialize(include: [:arrived?, :approved?, :departed?])
         end
       )
     else
@@ -65,7 +65,7 @@ get '/appointments/search' do
     	body(
         cache_fetch("search_appointments_#{params['q']}_json", expires: 60) do
           appts = Appointment.all(:contact.like => "%#{params['q']}%") | Appointment.all(:comment.like => "%#{params['q']}%")
-          appts.serialize(include: [:arrived?, :approved?])
+          appts.serialize(include: [:arrived?, :approved?, :departed?])
         end
       )
     else
@@ -122,7 +122,7 @@ post '/appointments' do
       appt.save
       appt.reload
       status 201
-      body(appt.serialize(include: [:arrived?, :approved?]))
+      body(appt.serialize(include: [:arrived?, :approved?, :departed?]))
     else
       halt(403) # Forbidden
     end
@@ -180,7 +180,7 @@ get '/appointments/:id' do |id|
       app = Appointment.get(id)
       if app
         status 200
-        body app.serialize(include: [:arrived?, :approved?])
+        body app.serialize(include: [:arrived?, :approved?, :departed?])
       else
         halt(404) # Can't find what you're looking for
       end
@@ -230,6 +230,55 @@ patch '/appointments/:id/checkin' do |id|
       else
         app.checkin(Guest.first(email: @data['email']))
       end
+    else
+      halt(403) # Forbidden
+    end
+    halt(204)
+  end
+end
+
+# DELETE a check-in for an appointment
+delete '/appointments/:id/checkin' do |id|
+  api_action do
+    app = Appointment.get(id)
+    if api_authenticated?(false) || (guest_authenticated? && app.guest == @current_guest)
+      app.undo_checkin
+    else
+      halt(403) # Forbidden
+    end
+    halt(204)
+  end
+end
+
+# PATCH a check-out for an appointment
+#
+# REQUIRED: email
+# @example
+#  {
+#   "email": "jgnagy@example.com"
+#  }
+patch '/appointments/:id/checkout' do |id|
+  api_action do
+    app = Appointment.get(id)
+    if api_authenticated?(false) || (guest_authenticated? && app.guest == @current_guest)
+      if @current_guest
+        app.checkout(@current_guest)
+      else
+        app.checkout(Guest.first(email: @data['email']))
+      end
+    else
+      halt(403) # Forbidden
+    end
+    halt(204)
+  end
+end
+
+# DELETE a check-out for an appointment
+delete '/appointments/:id/checkout' do |id|
+  api_action do
+    app = Appointment.get(id)
+    if api_authenticated?(false) || (guest_authenticated? && app.guest == @current_guest)
+      app.undo_checkout
     else
       halt(403) # Forbidden
     end

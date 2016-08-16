@@ -129,6 +129,11 @@ def api_action(options = {}, &block)
   end
 end  
 
+# Is debugging enabled?
+def debugging?
+  CONFIG.key?(:debug) ? CONFIG[:debug] : false
+end
+
 # Add a capability to the Capabilities hash
 def register_capability(capability_heading, data)
   Capabilities.instance[capability_heading] = data

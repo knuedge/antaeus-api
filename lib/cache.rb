@@ -45,17 +45,47 @@ def cache_fetch(key, options = {}, &block)
   begin
     result = CACHE.load(key, options)
     if result.nil?
+      # Debug Logging
+      puts "[Cache Fetch @ #{Time.now.strftime("%d/%b/%Y:%H:%M:%S %z")}]: " +
+        "Cache Miss for #{key}" if debugging?
+
+      metric_key = 'cache.miss'
+      if Metrics.registered?(:counts)
+        Metrics.update(:counts, metric_key) {|c| c + 1 }
+      end
+
       if block_given?
-        CACHE.store(key, block.call, options)
+        block_result = block.call
+        CACHE.store(key, block_result, options)
+        metric_key = 'cache.store'
+        if Metrics.registered?(:counts)
+          Metrics.update(:counts, metric_key) {|c| c + 1 }
+        end
+        puts "[Cache Store @ #{Time.now.strftime("%d/%b/%Y:%H:%M:%S %z")}]: " +
+          "Cached #{key}" if debugging?
+        block_result
       else
         nil
       end
     else
+      puts "[Cache Fetch @ #{Time.now.strftime("%d/%b/%Y:%H:%M:%S %z")}]: " +
+        "Cache Hit for #{key}" if debugging?
+
+      metric_key = 'cache.hit'
+      if Metrics.registered?(:counts)
+        Metrics.update(:counts, metric_key) {|c| c + 1 }
+      end
       result
     end
   rescue => e
+    puts "[Cache Fetch @ #{Time.now.strftime("%d/%b/%Y:%H:%M:%S %z")}]: " +
+    "Failed to fetch #{key} from cache: #{e.message}" if debugging?
     # don't let failures poison the cache
-    CACHE.clear
+    begin
+      cache_expire(key)
+    rescue => e
+      # ignore failures to expire non-existent cache keys
+    end
     nil
   end
 end
@@ -63,6 +93,8 @@ end
 # Helper to force a cache eviction / expiration
 def cache_expire(key, options = {})
   CACHE.delete(key, options)
+  puts "[Cache Expire @ #{Time.now.strftime("%d/%b/%Y:%H:%M:%S %z")}]: " +
+    "Cache Expired for #{key}" if debugging?
 end
 
 # Helper for backgroud cache prefetching
@@ -75,14 +107,18 @@ def ldap_prefetch(ldap_class, additional_attrs = [])
 
   start_time = Time.now
   results = ldap_class.all
+  puts "[LDAP Cache Worker @ #{Time.now.strftime("%d/%b/%Y:%H:%M:%S %z")}]: " +
+    "Fetching lazy JSON for #{ldap_class.name.to_s}..." if debugging?
   cache_fetch("all_#{ldap_class.name.to_s.downcase}_json", expires: ldap_cache_expiration) do
     ldap_class.all.serialize(only: :id)
   end
+  puts "[LDAP Cache Worker @ #{Time.now.strftime("%d/%b/%Y:%H:%M:%S %z")}]: " +
+    "Fetching full JSON for #{ldap_class.name.to_s}..." if debugging?
   cache_fetch("full_all_#{ldap_class.name.to_s.downcase}_json", expires: ldap_cache_expiration) do
     ldap_class.all.serialize(include: additional_attrs)
   end
   end_time = Time.now
   time_taken = end_time - start_time
   puts "[LDAP Cache Worker @ #{Time.now.strftime("%d/%b/%Y:%H:%M:%S %z")}]: " +
-    "Cached #{results.size} LDAP #{ldap_class} objects in #{time_taken} seconds"
+    "Cached #{results.size} LDAP #{ldap_class} objects in #{time_taken} seconds" if debugging?
 end

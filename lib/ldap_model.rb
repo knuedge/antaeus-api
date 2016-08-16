@@ -94,9 +94,11 @@ module LDAP
       filter = "(#{CONFIG[:ldap]["#{to_s.downcase}attr".to_sym]}=*)"
       base   = CONFIG[:ldap]["#{to_s.downcase}base".to_sym]
       cache_key = "all_#{filter}_#{base}"
-      result_data = cache_fetch(cache_key, expires: 900) { LDAP.search(filter, base, attrs) }
+      result_data = cache_fetch(cache_key, expires: 900) do
+        LDAP.search(filter, base: base, attrs: attrs, scope: search_scope)
+      end
       collection = cache_fetch("#{to_s.downcase}_all", expires: 300) do
-        PooledIterator.collect(result_data, 4, Collection) do |entry|
+        PooledIterator.collect(result_data, 8, Collection) do |entry|
           cache_fetch(entry.dn, expires: 300) { new(entry) }
         end
       end
@@ -157,10 +159,12 @@ module LDAP
 
         base   = CONFIG[:ldap]["#{to_s.downcase}base".to_sym]
         cache_key = "search_#{filter}_#{base}"
-        result_data = cache_fetch(cache_key, expires: 300) { LDAP.search(filter, base, attrs) }
+        result_data = cache_fetch(cache_key, expires: 300) do
+          LDAP.search(filter, base: base, attrs: attrs, scope: search_scope)
+        end
       end
       collection = cache_fetch("#{to_s.downcase}_search_#{query}", expires: 300) do
-        PooledIterator.collect(result_data.uniq, 4, Collection) do |entry|
+        PooledIterator.collect(result_data.uniq, 8, Collection) do |entry|
           cache_fetch(entry.dn, expires: 300) { new(entry) }
         end
       end
@@ -189,6 +193,10 @@ module LDAP
       self.class.identity_attribute
     end
 
+    def search_scope
+      self.class.search_scope
+    end
+
     # DataMapper-style #attributes Hash
     def attributes
       data = {id: id}
@@ -215,8 +223,23 @@ module LDAP
 
     def self.from_dn(the_dn)
       cache_fetch(the_dn, expires: 300) do
-        filter = the_dn.split(',')[0]
-        entries = LDAP.search(filter)
+        objcl = CONFIG[:ldap]["#{to_s.downcase}objcl".to_sym]
+        filter = "(objectClass=#{objcl})"
+        entries = LDAP.search(filter, base: the_dn, scope: :object)
+        if entries.nil? || entries.empty?
+          fail "Unknown LDAP #{self}"
+        elsif entries.size > 1
+          fail "Ambiguous LDAP #{self}"
+        else
+           new(entries.first)
+        end
+      end
+    end
+
+    def self.from_filter(ldap_filter, base = nil)
+      cache_fetch(ldap_filter, expires: 300) do
+        filter = ldap_filter
+        entries = base ? LDAP.search(filter, base: base, scope: search_scope) : LDAP.search(filter, scope: search_scope)
         if entries.nil? || entries.empty?
           fail "Unknown LDAP #{self}"
         elsif entries.size > 1
@@ -229,6 +252,10 @@ module LDAP
 
     def self.identity_attribute
       CONFIG[:ldap]["#{to_s.downcase}attr".to_sym].to_sym
+    end
+
+    def self.search_scope
+      CONFIG[:ldap].key?("#{to_s.downcase}scope".to_sym) ? CONFIG[:ldap]["#{to_s.downcase}scope".to_sym].to_sym : :subtree
     end
 
     def <=>(other)

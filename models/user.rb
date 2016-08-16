@@ -8,9 +8,9 @@ class User < LDAP::Model
     ApiToken.first_or_create(dn: dn)
   end
 
-  # Dynamically construct a DN from the login attribute
+  # Dynamically find a DN from the login attribute
   def self.from_login(login)
-    from_dn("#{CONFIG[:ldap][:userattr]}=#{login},#{CONFIG[:ldap][:userbase]}")
+    from_filter("#{CONFIG[:ldap][:userattr]}=#{login}", CONFIG[:ldap][:userbase])
   end
 
   # Authenticate a user from their API token
@@ -38,9 +38,8 @@ class User < LDAP::Model
   end
 
   def admin?
-    query = "#{CONFIG[:ldap][:groupattr]}=#{CONFIG[:ldap][:admin_group]},"
-    query << CONFIG[:ldap][:groupbase]
-    Group.from_dn(query).members.include?(self)
+    query = "#{CONFIG[:ldap][:groupattr]}=#{CONFIG[:ldap][:admin_group]}"
+    Group.from_filter(query, CONFIG[:ldap][:groupbase]).members.include?(self)
   end
 
   # Appointments where the current user is the contact
