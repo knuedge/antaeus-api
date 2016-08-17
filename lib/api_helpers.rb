@@ -98,14 +98,14 @@ end
 # @return [String] A guess at the URL for a resource
 def api_url(*objects)
   begin
-    url = ""
+    url = ''
     objects.each do |object|
-      url << "/"
+      url << '/'
       url << object.class.to_s.downcase.en.plural
-      url << "/"
+      url << '/'
       url << object.id.to_s
     end
-    url << ".json"
+    url << '.json'
     return url
   rescue => e
     halt(501, { :error => e.message }.to_json)
