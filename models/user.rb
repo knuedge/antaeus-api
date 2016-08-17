@@ -18,7 +18,7 @@ class User < LDAP::Model
     begin
       login, real_token = decrypt(token).split(';;;')
     rescue => e
-      fail 'Invalid Token'
+      fail Exceptions::InvalidToken
     end
 
     user = from_login(login)
