@@ -5,4 +5,5 @@ Warbler::Config.new do |config|
   config.gem_dependencies = true
   # config.webxml.jruby.compat.version = "1.9"
   config.features = ["executable", "compiled"]
+  config.jar_name = "antaeus_api"
 end
