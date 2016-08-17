@@ -1,5 +1,5 @@
 Warbler::Config.new do |config|
-  config.dirs = %w(config controllers lib models)
+  config.dirs = %w(config controllers lib models exceptions)
   config.includes = FileList["main.rb"]
   config.gems -= ["rails"]
   config.gem_dependencies = true
