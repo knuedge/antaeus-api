@@ -1,5 +1,6 @@
 require "rubygems"
 require "bundler/setup"
+require 'time'
 
 require 'sinatra'
 require 'concurrent'
@@ -43,9 +44,6 @@ else
       :username  => 'antaeus',
       :password  => 'secret'
     },
-    :crypto => {
-      :passphrase => 'CHANGE-THIS-IMMEDIATELY!'
-    },
     :mail => {
       :from  => 'noreply@example.com',
       :relay => 'mail.example.com',
@@ -60,19 +58,21 @@ else
       :groupbase  => 'ou=Groups,dc=example,dc=com',
       :groupobjcl => 'groupOfNames',
       :groupattr  => 'cn',
+      :groupscope => 'subtree',
       :memberattr => 'memberUid',
       :memberref  => 'attribute',
       :userbase   => 'ou=People,dc=example,dc=com',
       :userobjcl  => 'person',
       :userattr   => 'uid',
+      :userscope  => 'subtree',
       :loginattr  => 'uid',
       :mailattr   => 'mail',
       :displayname => 'displayName',
-      :gnattr     => 'givenName',
       :admin_group => 'sgAntaeusAdmins'
     },
     :caching    => {
       :enabled  => false,
+      :library  => 'redis',
       :host     => 'redis.example.com',
       :port     => 6379,
       :passphrase => 'letmein',
