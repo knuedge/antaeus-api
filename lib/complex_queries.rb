@@ -2,7 +2,7 @@
 def parse_complex_query(q, defaults = {})
   p = {}
   q.each do |query|
-    key, value = query.split ':'
+    key, value = URI.decode(query).split ':'
     parsed_value = value
     parsed_value = value.split(',') if value.match(/,/)
     if value.match(/\.\./)
