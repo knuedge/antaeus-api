@@ -46,7 +46,7 @@ else
     },
     :crypto => {
       :passphrase => (rand(9**99).to_s + rand(9**99).to_s)[0...64]
-    }
+    },
     :mail => {
       :from  => 'noreply@example.com',
       :relay => 'mail.example.com',
