@@ -3,14 +3,14 @@
 api_parse_for(:reports)
 register_capability(:reports, version: APP_VERSION)
 
-# GET the list of available reports
+# POST to produce a list of appointments based on some criteria in the form of a query under the key "q"
 # This method should be used in an asynchronous way in a web app given how slow it will be overtime.
-get '/reports/generate' do
+post '/reports/generate' do
   api_action do
     if api_authenticated? && @current_user.admin?
-      fail Exceptions::MissingQuery unless params['q']
+      fail Exceptions::MissingQuery unless data.key?['q']
       status 200
-      queries = parse_complex_query(params['q'])
+      queries = data['q']
       appointments = Appointment.all
       queries.each do |prop, query|
         # TODO switch to case
