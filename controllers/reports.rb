@@ -21,7 +21,8 @@ post '/reports/generate' do
         elsif prop.to_sym == :location
           appointments = appointments.all(location: Location.all(id: query))
         elsif prop.to_sym == :contact
-          appointments = appointments.all(contact: User.all(id: query))
+          # This could probably be improved...
+          appointments = appointments.all(contact: User.search(query))
         end
       end
       body(

@@ -23,7 +23,7 @@ require 'moneta'
 ### Custom code
 
 # The version of this application
-APP_VERSION = '0.0.5'
+APP_VERSION = '0.1.0'
 APP_VERSION.freeze
 
 puts ">> Starting up..."
@@ -44,6 +44,9 @@ else
       :username  => 'antaeus',
       :password  => 'secret'
     },
+    :crypto => {
+      :passphrase => (rand(9**99).to_s + rand(9**99).to_s)[0...64]
+    }
     :mail => {
       :from  => 'noreply@example.com',
       :relay => 'mail.example.com',
