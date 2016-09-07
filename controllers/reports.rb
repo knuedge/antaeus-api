@@ -8,24 +8,28 @@ register_capability(:reports, version: APP_VERSION)
 post '/reports/generate' do
   api_action do
     if api_authenticated? && @current_user.admin?
-      fail Exceptions::MissingQuery unless data.key?['q']
+      fail Exceptions::MissingQuery unless @data.key?('q')
       status 200
-      queries = data['q']
+
       appointments = Appointment.all
-      queries.each do |prop, query|
+      @data['q'].each do |prop, query|
         # TODO switch to case
-        if prop == :between
+        if prop.to_sym == :between
           appointments = appointments.all(arrival_date: query)
-        elsif prop == :guest
+        elsif prop.to_sym == :guest
           appointments = appointments.all(guest: Guest.all(id: query))
-        elsif prop == :location
+        elsif prop.to_sym == :location
           appointments = appointments.all(location: Location.all(id: query))
-        elsif prop == :contact
+        elsif prop.to_sym == :contact
           appointments = appointments.all(contact: User.all(id: query))
         end
       end
       body(
-        appointments.select {|appt| appt.approved? && appt.arrived? }.serialize(include: [:arrived?, :approved?, :departed?])
+        if appointments.empty?
+          {appointments: []}.to_json
+        else
+          appointments.select {|appt| appt.approved? && appt.arrived? }.serialize(include: [:arrived?, :approved?, :departed?])
+        end
       )
     else
       halt(403) # Forbidden
