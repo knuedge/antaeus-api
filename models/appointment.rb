@@ -45,6 +45,11 @@ class Appointment
     fail Exceptions::ForbiddenChange if appt.has_checkin?
   end
 
+  # Additional methods to serialize
+  def self.methods_for_serialization
+    [:arrived?, :approved?, :departed?, :checkin_time, :checkout_time]
+  end
+
   # Ensure times are in UTC before they're saved
   def arrival=(time)
     super(Time.parse(time).utc)
@@ -64,6 +69,14 @@ class Appointment
 
   alias_method :arrived?, :has_checkin?
   alias_method :departed?, :has_checkout?
+
+  def checkin_time
+    has_checkin? ? guest_checkin.created_at : nil
+  end
+
+  def checkout_time
+    has_checkout? ? guest_checkout.created_at : nil
+  end
 
   def change_approval(status, user)
     fail Exceptions::ForbiddenChange if has_checkin?

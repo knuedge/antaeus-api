@@ -34,7 +34,8 @@ module Serializable
       end
     elsif respond_to?(:attributes)
       additional_data = {}
-      [*options[:methods], *options[:include]].uniq.each do |m|
+      cmethods = self.class.respond_to?(:methods_for_serialization) ? self.class.methods_for_serialization : []
+      [*options[:methods], *options[:include], *cmethods].uniq.each do |m|
         additional_data[m.to_sym] = send(m.to_sym)
       end
       
@@ -44,7 +45,8 @@ module Serializable
       end
     else
       additional_data = {}
-      [*options[:methods], *options[:include]].uniq.each do |m|
+      cmethods = self.class.respond_to?(:methods_for_serialization) ? self.class.methods_for_serialization : []
+      [*options[:methods], *options[:include], *cmethods].uniq.each do |m|
         additional_data[m.to_sym] = send(m.to_sym)
       end
       

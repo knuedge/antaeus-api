@@ -159,9 +159,9 @@ get '/locations/:id/appointments' do
       location = Location.get(params['id'])
       status 200
       if params.key?('all') && params['all']
-        body(location.appointments.serialize(include: :arrived?))
+        body(location.appointments.serialize)
       else
-        body(location.upcoming_appointments.serialize(include: :arrived?))
+        body(location.upcoming_appointments.serialize)
       end
     else
       halt(403) # Forbidden

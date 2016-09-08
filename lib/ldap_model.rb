@@ -258,6 +258,10 @@ module LDAP
       CONFIG[:ldap].key?("#{to_s.downcase}scope".to_sym) ? CONFIG[:ldap]["#{to_s.downcase}scope".to_sym].to_sym : :subtree
     end
 
+    def self.methods_for_serialization
+      []
+    end
+
     def <=>(other)
       if dn < other.dn
         -1

@@ -137,6 +137,7 @@ end
 # Add a capability to the Capabilities hash
 def register_capability(capability_heading, data)
   Capabilities.instance[capability_heading] = data
+  puts ">>> Loading #{capability_heading} capability..." if debugging?
 end
 
 # Add a plugin to the Plugins hash
