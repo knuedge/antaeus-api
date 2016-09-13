@@ -2,6 +2,7 @@
 class Guest
   include DataMapper::Resource
   include Serializable
+  include Workflowable
 
   property :id,         Serial
   property :email,      String,   length: 4..255, required: true, unique_index: true,
@@ -29,10 +30,12 @@ class Guest
 
   after :save do |guest|
     cache_expire('all_guests_json') # need to expire the cache on save
+    trigger(:guest_save, guest)
   end
 
   after :destroy do |guest|
     cache_expire('all_guests_json') # need to expire the cache on destroy
+    trigger(:guest_destroy, guest)
   end
 
   # Authenticate a Guest from their crafted API token

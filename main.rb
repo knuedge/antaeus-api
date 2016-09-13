@@ -16,14 +16,13 @@ require 'dm-types'
 require 'dm-transactions'
 require 'linguistics'
 require 'require_all'
-#require 'mail-gpg'
 require 'net/ldap'
 require 'moneta'
 
 ### Custom code
 
 # The version of this application
-APP_VERSION = '0.1.2'
+APP_VERSION = '0.2.0'
 APP_VERSION.freeze
 
 puts ">> Starting up..."

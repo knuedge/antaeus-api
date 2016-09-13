@@ -8,9 +8,9 @@ gem "data_mapper"
 gem "dm-mysql-adapter"
 gem "linguistics"
 gem 'require_all'
+gem 'mail'
 
 platforms :ruby do
-  gem "mail-gpg"
   gem "thin"
 end
 

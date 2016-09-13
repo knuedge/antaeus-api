@@ -62,7 +62,7 @@ class WorkflowPlugin
   # Don't touch this... used for calling workflow steps internally
   def execute(options = {})
     # load all the options for this plugin
-    options.each { |name,value| send("#{name}=", value) }
+    options.each { |name,value| send("#{name}=".to_sym, value) }
 
     # validate we have the properties we need
     validate_properties
@@ -80,7 +80,7 @@ class WorkflowPlugin
 
   def validate_properties
     missing_properties = []
-    required_propertes.each do |prop|
+    required_properties.each do |prop|
       missing_properties << prop if send(prop.to_sym).nil?
     end
     raise Exceptions::MissingProperty unless missing_properties.empty?

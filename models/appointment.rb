@@ -2,6 +2,7 @@
 class Appointment
   include DataMapper::Resource
   include Serializable
+  include Workflowable
 
   property :id,         Serial
 
@@ -34,11 +35,13 @@ class Appointment
   after :save do |appt|
     cache_expire('upcoming_appointment_json') # need to expire the cache on save
     cache_expire('all_appointment_json')
+    trigger(:appointment_save, appt)
   end
 
   after :destroy do |appt|
     cache_expire('upcoming_appointment_json') # need to expire the cache on destroy
     cache_expire('all_appointment_json')
+    trigger(:appointment_destroy, appt)
   end
 
   before :destroy do |appt|
@@ -88,6 +91,7 @@ class Appointment
     end
     cache_expire('upcoming_appointment_json')
     cache_expire('all_appointment_json')
+    trigger(status ? :appointment_approved : :appointment_unapproved, self)
   end
 
   def checkin(guest_user = nil)
@@ -100,6 +104,7 @@ class Appointment
     end
     cache_expire('upcoming_appointment_json')
     cache_expire('all_appointment_json')
+    trigger(:appointment_checkin, self)
   end
 
   def undo_checkin
@@ -108,6 +113,7 @@ class Appointment
     guest_checkin.destroy
     cache_expire('upcoming_appointment_json')
     cache_expire('all_appointment_json')
+    trigger(:appointment_undo_checkin, self)
   end
 
   def checkout(guest_user = nil)
@@ -120,6 +126,7 @@ class Appointment
     end
     cache_expire('upcoming_appointment_json')
     cache_expire('all_appointment_json')
+    trigger(:appointment_checkout, self)
   end
 
   def undo_checkout
@@ -127,6 +134,7 @@ class Appointment
     guest_checkout.destroy
     cache_expire('upcoming_appointment_json')
     cache_expire('all_appointment_json')
+    trigger(:appointment_undo_checkout, self)
   end
 
   # Map a contact to its actual user

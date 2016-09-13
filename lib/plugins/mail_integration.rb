@@ -1,5 +1,21 @@
+# Monkey Patch for SMTP Issue
+require 'net/smtp'
+
+class << Net::SMTP
+  remove_method :default_ssl_context # if defined?(Net::SMTP.default_ssl_context)
+end
+
+module Net
+  class SMTP
+    def SMTP.default_ssl_context
+      OpenSSL::SSL::SSLContext.new('TLSv1_2_client')
+    end
+  end
+end
+
 module Plugin
   class MailIntegration < WorkflowPlugin
+    require 'mail'
     property :subject, required: true
     property :message, required: true
     property :to,      required: true
