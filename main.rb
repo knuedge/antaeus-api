@@ -22,7 +22,7 @@ require 'moneta'
 ### Custom code
 
 # The version of this application
-APP_VERSION = '0.2.0'
+APP_VERSION = '0.2.3'
 APP_VERSION.freeze
 
 puts ">> Starting up..."
