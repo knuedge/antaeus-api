@@ -3,6 +3,7 @@ class RemoteApplication
   include DataMapper::Resource
   include Serializable
   include Workflowable
+  extend Hookable
 
   property :id,         Serial
   property :app_name,   String, length: 4..255, required: true, unique_index: true
@@ -19,6 +20,8 @@ class RemoteApplication
   after :destroy do |remote_app|
     trigger(:remote_application_destroy, remote_app)
   end
+
+  register_hook :remote_application_save, :remote_application_destroy
 
   # Decrypt app_key before displaying it
   # @return [String]

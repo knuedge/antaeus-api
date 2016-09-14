@@ -4,7 +4,7 @@ module Workflowable
     puts "[Workflow Event @ #{Time.now.strftime("%d/%b/%Y:%H:%M:%S %z")}]: " +
       "Triggering `#{event}`" if debugging?
 
-    # Move plugin operation to background threads 
+    # Move plugin operation to background threads
     Concurrent::Promise.new { WorkflowHook.all(name: event.to_s) }.then do |hooks|
       hooks.each do |hook|
         hook.plugins.each do |hook_plugin|

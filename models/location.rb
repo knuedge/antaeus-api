@@ -3,6 +3,7 @@ class Location
   include DataMapper::Resource
   include Serializable
   include Workflowable
+  extend Hookable
 
   property :id,         Serial
 
@@ -46,6 +47,8 @@ class Location
     cache_expire('all_locations_json') # need to expire the cache on destroy
     trigger(:location_destroy, loc)
   end
+
+  register_hook :location_save, :location_destroy
 
   # Ensure shortnames are uppercase
   def shortname=(name)

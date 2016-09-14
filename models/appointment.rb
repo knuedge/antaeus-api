@@ -3,6 +3,7 @@ class Appointment
   include DataMapper::Resource
   include Serializable
   include Workflowable
+  extend Hookable
 
   property :id,         Serial
 
@@ -47,6 +48,17 @@ class Appointment
   before :destroy do |appt|
     fail Exceptions::ForbiddenChange if appt.has_checkin?
   end
+
+  register_hook [
+    :appointment_save,
+    :appointment_destroy,
+    :appointment_approved,
+    :appointment_unapproved,
+    :appointment_checkin,
+    :appointment_undo_checkin,
+    :appointment_checkout,
+    :appointment_undo_checkout
+  ]
 
   # Additional methods to serialize
   def self.methods_for_serialization
