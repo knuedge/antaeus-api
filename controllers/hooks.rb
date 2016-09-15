@@ -79,7 +79,7 @@ put '/hooks/:id' do
 
       # Gather a list of the properties we care about
       bad_props = [:updated_at, :created_at, :id, :name]
-      props = RemoteApplication.properties.map(&:name) - bad_props
+      props = WorkflowHook.properties.map(&:name) - bad_props
 
       # Set all the props sent, ignoring those we don't know about
       props.map(&:to_s).each do |prop|
