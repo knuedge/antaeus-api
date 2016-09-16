@@ -45,13 +45,13 @@ end
 post '/hooks' do
 	api_action do
     if api_authenticated? and @current_user.admin?
-      fail Exceptions::MissingProperty unless @data.has_key?('name') and @data.has_key?('plugins')
+      fail Exceptions::MissingProperty unless @data.key?('name') and @data.key?('plugins')
       if !WorkflowHook.first(:name => @data['name'])
         wfhook = WorkflowHook.new(
           :name => @data['name'],
           :plugins => @data['plugins']
         )
-        wfhook.configurations = @data['configurations'] if @data.has_key?('configurations')
+        wfhook.configurations = @data['configurations'] if @data.key?('configurations')
         wfhook.raise_on_save_failure = true
         wfhook.save
         wfhook.reload
