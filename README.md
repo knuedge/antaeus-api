@@ -19,20 +19,20 @@ Once the required gems are installed and the database software is running, a dat
 
 To start the Antaeus Web Service API, either create a warfile using `warble war` and 1) run it directly with `java -jar antaeus-api.war` or 2) drop it in your favorite Java App Server (perhaps the well-tested [Apache Tomcat](http://tomcat.apache.org/)), or rather than using Java you can run the `main.rb` file using your favorite Ruby runtime. Simply running `rackup` in the applications root directory should work well.
 
-On first run, a directory called ".antaeus" will be created under your home directory, and within it will be the config file: "api.yml". Antaeus should have automatically stopped, so feel free to edit the "api.yml" file to match your database, LDAP, and other configurations. After this step is complete, launch the Antaeus Web Service again and connect to it via the port described in the startup logs (usually 8080 when using a Java method or 4567 when using Ruby directly) to begin using it.
+On first run, a directory called `.antaeus` will be created under your home directory, and within it will be the config file: `api.yml`. Antaeus should have automatically stopped, so feel free to edit the `api.yml` file to match your database, LDAP, and other configurations. After this step is complete, launch the Antaeus Web Service again and connect to it via the port described in the startup logs (usually 8080 when using a Java method or 4567 when using Ruby directly) to begin using it.
 
 Currently, Antaeus only support LDAP for authentication and authorization. It uses a custom, limited-use, token-based API secret system for most API keys. Most actions require an API token, which can only be acquired via a call to `/users/authenticate.json`.
 
 To acquire an API token, POST something similar the following JSON to `/users/authenticate.json`:
 
 	{
-		"login": "user@somedomain.com",
+		"login": "username",
 		"password": "letmein"
 	}
 
 Once you login, you will receive an API Key in the server's response to authenticate for all other actions requiring authentication. API Keys are only valid for one hour from the time of their last valid use.
 
-The email and key are used to authenticate when passed as `X_API_EMAIL` and `X_API_KEY` HTTP Headers.
+The API key is then used to authenticate when passed as `X_API_TOKEN` HTTP Header.
 
 API Endpoint Documentation
 --------------------------
@@ -40,4 +40,6 @@ TODO
 
 License
 -------
-This stuff is released under the [Simplified BSD license](http://en.wikipedia.org/wiki/BSD_licenses#2-clause_license_.28.22Simplified_BSD_License.22_or_.22FreeBSD_License.22.29).
+This project and all code contained within it are released under the [MIT License](https://opensource.org/licenses/MIT). As stated in [CONTRIBUTING](CONTRIBUTING.md):
+
+> All contributions to this project will be released under the [MIT License](https://opensource.org/licenses/MIT). By submitting a pull request, you are agreeing to comply with this license and for any contributions to be released under it.
